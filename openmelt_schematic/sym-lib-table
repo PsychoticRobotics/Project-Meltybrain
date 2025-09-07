@@ -1,3 +1,0 @@
-(sym_lib_table
-  (lib (name "Arduino Micro")(type "KiCad")(uri "${KIPRJMOD}/arduino/A000053.kicad_sym")(options "")(descr ""))
-)
