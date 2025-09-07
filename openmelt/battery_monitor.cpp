@@ -4,7 +4,7 @@
 
 //returns battery voltage
 float get_battery_voltage() {
-  return (analogRead(BATTERY_ADC_PIN) * (ARDUINIO_VOLTAGE / 1023.0)) * VOLTAGE_DIVIDER;
+  return (analogRead(BATTERY_ADC_PIN) * (ARDUINIO_VOLTAGE / 1023.0)) * VOLTAGE_DIVIDER; // ARDUINO_VOLTAGE says ARDUINIO, possible mistake
 }
 
 //check for low battery - but only alarm after certain number of low reads in a row (prevents ADC noise from alarming)
