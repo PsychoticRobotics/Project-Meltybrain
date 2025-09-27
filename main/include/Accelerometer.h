@@ -12,13 +12,26 @@ using namespace Eigen;
 
 class Accelerometer {
 public:
-    Accelerometer() = default;
-    bool init(uint8_t address);
+    bool initialized = false;
 
+    bool init(uint8_t address);
     Vector3d fetch();
 
 private:
     LIS331 base;
 };
+
+class AccelerometerManager {
+public:
+    Accelerometer accel1;
+    Accelerometer accel2;
+
+    bool setup(uint8_t add1, uint8_t add2);
+    bool setup(uint8_t add);
+    Vector3d fetch();
+};
+
+Accelerometer* setupAccelerometersNew();
+Vector3d fetchAccelerometerData();
 
 #endif //MELTYBRAIN_ACCELEROMETER_H
