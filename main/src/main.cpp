@@ -1,10 +1,12 @@
 //
 // Created by Atharv Goel on 9/21/25.
+// Updated last by Atharv Goel on 9/27/25.
 //
 
-#include "../include/Accelerometer.h"
+#include "../include/AccelerometerI2C.h"
 #include "../lib/Eigen/Dense"
 #include <Arduino.h>
+#include <Wire.h>
 
 
 AccelerometerManager accelerometers;
@@ -17,6 +19,8 @@ AccelerometerManager accelerometers;
 }
 
 void setup() {
+    Wire.begin();
+    Wire.setClock(400000); // I2C fast mode
     Serial.begin(19200);
     if (!accelerometers.setup(0x19)) quit(); // Initialize accelerometer
 }

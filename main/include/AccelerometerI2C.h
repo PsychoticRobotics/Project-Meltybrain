@@ -1,5 +1,6 @@
 //
 // Created by Atharv Goel on 9/20/25.
+// Updated last by Atharv Goel on 9/27/25.
 //
 
 #ifndef MELTYBRAIN_ACCELEROMETER_H
@@ -30,8 +31,5 @@ public:
     bool setup(uint8_t add);
     Vector3d fetch();
 };
-
-Accelerometer* setupAccelerometersNew();
-Vector3d fetchAccelerometerData();
 
 #endif //MELTYBRAIN_ACCELEROMETER_H
