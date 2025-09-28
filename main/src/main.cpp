@@ -1,10 +1,11 @@
 //
 // Created by Atharv Goel on 9/21/25.
-// Updated last by Atharv Goel on 9/27/25.
+// Updated last by Atharv Goel on 9/28/25.
 //
 
-#include "../include/AccelerometerI2C.h"
+#include "Accelerometer.h"
 #include "../lib/Eigen/Dense"
+#include "Config.h"
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -19,10 +20,27 @@ AccelerometerManager accelerometers;
 }
 
 void setup() {
-    Wire.begin();
-    Wire.setClock(400000); // I2C fast mode
     Serial.begin(19200);
-    if (!accelerometers.setup(0x19)) quit(); // Initialize accelerometer
+    switch (PROTOCOL) {
+        case 0: // SPI
+            pinMode(MOSI, OUTPUT);
+            pinMode(MISO, INPUT);
+            pinMode(SCK, OUTPUT);
+
+            if (!accelerometers.setup(10)) quit(); // Initialize accelerometer with CS pin 10
+
+            break;
+        case 1: // I2C
+            Wire.begin();
+            Wire.setClock(400000); // I2C fast mode
+
+            if (!accelerometers.setup(0x19)) quit(); // Initialize accelerometer with I2C address 0x19
+
+            break;
+        default:
+            Serial.println("Invalid protocol specified in Config.h");
+            quit();
+    }
 }
 
 void loop() {

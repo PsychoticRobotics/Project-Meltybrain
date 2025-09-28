@@ -1,6 +1,6 @@
 //
 // Created by Atharv Goel on 9/20/25.
-// Updated last by Atharv Goel on 9/27/25.
+// Updated last by Atharv Goel on 9/28/25.
 //
 
 #ifndef MELTYBRAIN_ACCELEROMETER_H
@@ -15,7 +15,8 @@ class Accelerometer {
 public:
     bool initialized = false;
 
-    bool init(uint8_t address);
+    bool init(uint8_t add);
+    bool init(int CS);
     Vector3d fetch();
 
 private:
@@ -27,8 +28,8 @@ public:
     Accelerometer accel1;
     Accelerometer accel2;
 
-    bool setup(uint8_t add1, uint8_t add2);
-    bool setup(uint8_t add);
+    bool setup(int in1, int in2);
+    bool setup(int in);
     Vector3d fetch();
 };
 
