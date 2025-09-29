@@ -41,6 +41,8 @@ void setup() {
             Serial.println("Invalid protocol specified in Config.h");
             quit();
     }
+
+    init_motors();
 }
 
 void loop() {
@@ -59,4 +61,11 @@ void loop() {
 
     // Add a delay to prevent overwhelming the serial output
     delay(100);  // Adjust the delay as needed (in milliseconds)
+
+    float foo = 1;
+    motor_1_on(foo);
+    motor_2_on(foo);
+    
+    motor_1_coast();
+    motor_2_coast();
 }
