@@ -12,6 +12,7 @@
 
 
 AccelerometerManager accelerometers;
+Motor motors;
 
 [[noreturn]] void quit() {
     Serial.println("Exiting program.");
@@ -43,7 +44,7 @@ void setup() {
             quit();
     }
 
-    init_motors();
+    motors.init_motors();
 }
 
 void loop() {
@@ -63,9 +64,9 @@ void loop() {
     delay(100);
 
     float foo = 1;
-    motor_1_on(foo);
-    motor_2_on(foo);
+    motors.motor_1_on(foo);
+    motors.motor_2_on(foo);
     
-    motor_1_coast();
-    motor_2_coast();
+    motors.motor_1_coast();
+    motors.motor_2_coast();
 }

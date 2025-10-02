@@ -18,7 +18,7 @@ public:
     void init_motors();
 
     //turn motor_X_on 
-    void motor_1_on(float throttle_percent); // motify throttle_percent 
+    void motor_1_on(float throttle_percent); 
     void motor_2_on(float throttle_percent);
 
     //motors shut-down (robot not translating)
