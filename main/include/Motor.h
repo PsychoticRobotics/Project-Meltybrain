@@ -29,4 +29,7 @@ public:
     //motors coasting (unpowered part of rotation when translating)
     void motor_1_coast();
     void motor_2_coast();
-}
+};
+
+#endif
+#endif

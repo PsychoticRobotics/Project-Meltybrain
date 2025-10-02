@@ -1,9 +1,10 @@
 //
 // Created by Atharv Goel on 9/21/25.
-// Updated last by Atharv Goel on 9/28/25.
+// Updated last by Atharv Goel on 10/02/25.
 //
 
 #include "Accelerometer.h"
+#include "Motor.h"
 #include "../lib/Eigen/Dense"
 #include "Config.h"
 #include <Arduino.h>
@@ -59,8 +60,7 @@ void loop() {
     Serial.print(accelData.z());
     Serial.println("g");
 
-    // Add a delay to prevent overwhelming the serial output
-    delay(100);  // Adjust the delay as needed (in milliseconds)
+    delay(100);
 
     float foo = 1;
     motor_1_on(foo);
