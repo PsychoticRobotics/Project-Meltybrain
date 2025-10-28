@@ -8,8 +8,8 @@ Carnegie Mellon Combat Robotics
 
 [Melontype](https://github.com/zenith-parsec/melontype) by zenith-parsec (The Arena Floor)
 
-[OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs (the original open-source meltybrain creator)
-
-[SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by AlfredoSystems (The Greatest Challenge/Danger)
+[OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs (The **original** open-source meltybrain creator)
 
 [PotatoMelt](https://github.com/skysdottir/potatomelt) by skysdottir (Rotato Potato)
+
+[SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by AlfredoSystems (The Greatest Challenge)
