@@ -6,7 +6,9 @@ Carnegie Mellon Combat Robotics
 
 ## Other Meltybrain Examples: 
 
-[OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs
+[Melontype](https://github.com/zenith-parsec/melontype) by zenith-parsec (The Arena Floor)
+
+[OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs (the original open-source meltybrain creator)
 
 [SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by AlfredoSystems (The Greatest Challenge/Danger)
 
