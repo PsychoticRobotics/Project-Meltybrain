@@ -1,6 +1,6 @@
 # Meltybrain
 
-This repository contains code under the LGPL-2.1 (PotatoMelt) and MIT (SimpleMelt) licenses
+This repository contains code under the LGPL-2.1 (PotatoMelt) and MIT (SimpleMelt) licenses.
 
 Carnegie Mellon Combat Robotics
 
