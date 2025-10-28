@@ -1,0 +1,13 @@
+default_job = "esp"
+
+[jobs.esp]
+command = ["cargo", "check", "--target", "xtensa-esp32-none-elf", "--features", "esp"]
+need_stdout = false
+env.CARGO_TERM_COLOR = "always"
+
+[jobs.pc]
+command = ["cargo", "check", "--features", "pc"]
+need_stdout = false
+env.CARGO_TERM_COLOR = "always"
+env.RUSTUP_TOOLCHAIN = "stable"
+

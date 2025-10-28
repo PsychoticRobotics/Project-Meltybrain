@@ -1,0 +1,68 @@
+[package]
+edition = "2021"
+name    = "kasarisw"
+version = "0.1.0"
+
+[[bin]]
+name = "kasarisw"
+path = "src/embedded.rs"
+required-features = ["esp"]
+
+[[bin]]
+name = "simulator"
+path = "src/simulator/mod.rs"
+required-features = ["pc"]
+
+[features]
+esp = []
+pc = ["critical-section/std"]
+
+[dependencies]
+critical-section = "1.2.0"
+embassy-sync = "0.7.0"
+ringbuffer = "0.15.0"
+static_cell = "2.1.0"
+arrayvec = { version = "0.7.4", default-features = false, features = [] }
+num-traits = { version = "0.2.19", default-features = false }
+libm = "0.2.8"
+
+[target.'cfg(not(target_os = "none"))'.dependencies]
+clap = { version = "4.5", features = ["derive"] }  # For command-line parsing in simulator.rs
+eframe = "0.28"  # For the GUI framework
+egui_plot = "0.28"  # If needed separately; often bundled with egui/eframe
+serde_json = "1.0"  # For JSON parsing
+rand = "0.8"
+ctrlc = "3.4.5"
+crossbeam-channel = "0.5.15"
+
+[target.'xtensa-esp32-none-elf'.dependencies]
+xtensa-lx-rt = { version = "0.19.0", features = ["esp32"] }
+embassy-executor = { version = "0.7.0", features = ["task-arena-size-32768", "executor-thread", "executor-interrupt"] }
+embassy-futures = "0.1.1"
+embassy-time = "0.4.0"
+embedded-io-async = "0.6.1"
+esp-backtrace = { version = "0.15.1", features = ["esp32", "println"] }
+esp-hal         = { version = "1.0.0-rc.0", features = ["esp32", "unstable"] }
+esp-hal-embassy = { version = "0.8.1", features = ["esp32"] }
+esp-println = { version = "0.13.1", features = ["esp32"] }
+nb = "1.1.0"
+esp-wifi = { version = "0.15.0", features = ["esp32", "wifi"] }
+embassy-net = { version = "0.7.0", features = [ "tcp", "udp", "dhcpv4", "medium-ethernet"] }
+esp-alloc = "0.8.0"
+esp-bootloader-esp-idf = "0.1.0"
+esp-storage = { version = "0.7.0", features = ["esp32"] }
+embedded-storage = "0.3.1"
+
+[profile.dev]
+# Rust debug is too slow.
+# For debug builds always builds with some optimization
+opt-level = 2  # Would be 's', but esp-storage requires 2
+
+[profile.release]
+codegen-units    = 1     # LLVM can perform better optimizations using a single thread
+debug            = 2
+debug-assertions = false
+incremental      = false
+lto              = 'fat'
+opt-level        = 2  # Would be 's', but esp-storage requires 2
+overflow-checks  = false
