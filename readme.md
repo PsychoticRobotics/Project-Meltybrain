@@ -8,7 +8,7 @@ Carnegie Mellon Combat Robotics
 
 [Melontype](https://github.com/zenith-parsec/melontype) by zenith-parsec (The Arena Floor)
 
-[OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs (The **original** open-source meltybrain creator)
+[OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs (The original open-source meltybrain creator)
 
 [PotatoMelt](https://github.com/skysdottir/potatomelt) by skysdottir (Rotato Potato)
 
