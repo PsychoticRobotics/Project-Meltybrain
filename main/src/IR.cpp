@@ -1,6 +1,10 @@
 #include <Arduino.h>
 #include "IR.h"
 
+void IRinitialize() {
+  pinMode(IR_REC, INPUT)
+}
+
 uint16_t checkForAngle(float angle, uint64_t vel) {
   /*
     interval --> Interval of microseconds

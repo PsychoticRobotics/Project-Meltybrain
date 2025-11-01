@@ -12,6 +12,8 @@ public:
     // signal_bounds --> The left and right bounds of where melty should go
     uint16_t signal_angle = 0;
     uint8_t signal_bounds = 5;
+    // IRinitialize --> Initializes IR Reciever
+    void IRinitialize()
     // getAngle --> Determines angle of melty relative to angle at startup
     uint16_t getAngle(float angle, uint64_t vel)
     // signalFound --> Checks whether there is a signal at current angle
