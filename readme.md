@@ -23,3 +23,5 @@ This repository contains code under the LGPL-2.1 and MIT licenses. This code is 
 [Rotini Hardware](https://github.com/AlfredoSystems/Rotini-Hardware) by AlfredoSystems
 
 [TeensyShot](https://github.com/jacqu/teensyshot) by jacqu
+
+https://gitlab.com/team-mind-melt/magnetomelty
