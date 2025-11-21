@@ -5,6 +5,7 @@
 
 #include "Accelerometer.h"
 #include "Motor.h"
+#include "SensorFusion.h"
 #include "../lib/Eigen/Dense"
 #include "Config.h"
 #include <Arduino.h>
