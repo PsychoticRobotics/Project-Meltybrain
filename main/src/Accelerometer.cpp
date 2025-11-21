@@ -3,6 +3,8 @@
 // Updated last by Peter Elmer on 10/20/25.
 //
 
+/* This file only outputs unfiltered Accelerometer data */
+
 #include "Accelerometer.h"
 #include "Config.h"
 #include <Wire.h>
