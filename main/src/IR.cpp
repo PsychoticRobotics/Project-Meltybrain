@@ -50,5 +50,12 @@ void correctForSignal(float angle, float signal_angle) {
   return;
 }
 
-
-
+/* 
+// -------------------- Read IR distance --------------------
+void SensorFusion::readIR() {
+    // Replace with actual IR sensor reading code
+    // For example: analogRead(pin) or a digital LiDAR read
+    // Here, we simulate with a placeholder
+    irDistance = analogRead(A0) / 1023.0 * 2.0; // simulate 0-2 meters
+}
+*/
