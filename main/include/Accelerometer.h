@@ -31,6 +31,8 @@ public:
     bool setup(int in1, int in2);
     bool setup(int in);
     Vector3d fetch();
+    Vector3d print1();
+    Vector3d print2();
 };
 
 #endif //MELTYBRAIN_ACCELEROMETER_H
