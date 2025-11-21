@@ -41,6 +41,8 @@ bool signalFound() {
 
 /*
   **WIP** Moves melty in direction of IR
+  {This would go in the main.cpp file. Can be written here for now, but eventually
+  it will go in main. - Peter}
 */
 
 
