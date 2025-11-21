@@ -110,15 +110,39 @@ Vector3d AccelerometerManager::fetch() {
         return accel1.fetch();
 }
 
-// Combine this with fetch if that would be better
-void AccelerometerManager::print() {
-    Vector3d accelData = fetch();
-    unsigned long t = micros();   // timestamp in microseconds since boot
-    Serial.printf("[%010lu us]", t); // print microseconds since boot
+// Both fetches and prints
+Vector3d AccelerometerManager::print() {
+    // --- Determine how many accelerometers are initialized ---
+    int initializedCount = (accel1.initialized ? 1 : 0) + (accel2.initialized ? 1 : 0);
 
-    Serial.printf("Accel (m/s^2)  X: %.6f, Y: %.6f, Z: %.6f\n",
-              accelData.x(),
-              accelData.y(),
-              accelData.z());
-    // Current format: [0000000001 us]  Accel X: 0.123456 Y: -9.812345 Z: 0.001234
+    // --- Compute the acceleration vector ---
+    Vector3d accelData;
+    switch (initializedCount) {
+        case 0:
+            accelData = Vector3d{0.0, 0.0, 0.0};  // No sensors initialized
+            break;
+
+        case 1:
+            accelData = accel1.initialized ? accel1.fetch() : accel2.fetch();
+            break;
+
+        case 2:
+            accelData = (accel1.fetch() + accel2.fetch()) / 2.0;
+            break;
+
+        default:
+            accelData = Vector3d{0.0, 0.0, 0.0};  // Should never happen
+            break;
+    }
+
+    // --- Print timestamped accelerometer values ---
+    unsigned long t = micros();   // timestamp in microseconds
+    Serial.printf("[%010lu us]  Accel (m/s^2)  X: %.6f, Y: %.6f, Z: %.6f\n",
+                  t,
+                  accelData.x(),
+                  accelData.y(),
+                  accelData.z());
+
+    // --- Return the vector ---
+    return accelData;
 }

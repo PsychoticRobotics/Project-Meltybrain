@@ -1,6 +1,6 @@
 //
 // Created by Atharv Goel on 9/21/25.
-// Updated last by Atharv Goel on 10/02/25.
+// Updated last by Peter Elmer on 10/20/25.
 //
 
 #include "Accelerometer.h"
@@ -63,6 +63,17 @@ void loop() {
     motors.motor_1_coast();
     motors.motor_2_coast();
 }
+
+// Trying stuff:
+/*
+Vector3d accelData;
+Vector3d gyroData;
+Vector3d magData;
+
+void readAccel() { accelData = accelerometers.fetch(); }
+void readGyro()  { gyroData  = gyros.fetch(); }
+void readMag()   { magData   = magnetometer.fetch(); }
+*/
 
 // Old code:
 /*
