@@ -1,8 +1,10 @@
 #include "SensorFusion.h"
 #include <math.h>
 
-// This file should read the status of the sensors
-// Then it should output the estimated orientation
+// This file should:
+// Read and print the status of the sensors
+// Filter, output, and print the data
+// Calculate, output, and print the estimated orientation
 
 void SensorFusion::begin() {
     lastAccelTime = micros();
