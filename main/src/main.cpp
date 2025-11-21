@@ -51,6 +51,22 @@ void loop() {
     Serial.println("Fetching data...");
 
     // Fetch and output accelerometer data
+    accelerometers.print();
+    delay(100);
+
+    float low = 0;
+    float high = 1;
+
+    motors.motor_1_on(foo);
+    motors.motor_2_on(foo);
+    
+    motors.motor_1_coast();
+    motors.motor_2_coast();
+}
+
+// Old code:
+/*
+
     Vector3d accelData = accelerometers.fetch();
     Serial.print("Average Acceleration: ");
     // Serial.print("X: ");
@@ -63,15 +79,5 @@ void loop() {
     // Serial.print(accelData.z());
     Serial.printf("Z: %dg", accelData.z()); // Delete this if it doesn't work
     // Serial.println("g");
-
-    delay(100);
-
-    float low = 0;
-    float high = 1;
-
-    motors.motor_1_on(foo);
-    motors.motor_2_on(foo);
     
-    motors.motor_1_coast();
-    motors.motor_2_coast();
-}
+*/
