@@ -107,3 +107,16 @@ Vector3d AccelerometerManager::fetch() {
     } else
         return accel1.fetch();
 }
+
+// Combine this with fetch if that would be better
+void AccelerometerManager::print() {
+    Vector3d a = fetch();
+    unsigned long t = micros();   // timestamp in microseconds since boot
+    Serial.print("[%010lu us]", t); // print microseconds since boot
+
+    Serial.printf("Accel (m/s^2)  X: %.6f, Y: %.6f, Z: %.6f\n",
+              accelData.x(),
+              accelData.y(),
+              accelData.z());
+    // Current format: [0000000001 us]  Accel X: 0.123456 Y: -9.812345 Z: 0.001234
+}
