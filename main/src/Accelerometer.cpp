@@ -1,6 +1,6 @@
 //
 // Created by Atharv Goel on 9/20/25.
-// Updated last by Atharv Goel on 9/28/25.
+// Updated last by Peter Elmer on 10/20/25.
 //
 
 #include "Accelerometer.h"
