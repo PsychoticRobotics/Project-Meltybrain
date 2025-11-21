@@ -53,16 +53,16 @@ void loop() {
     // Fetch and output accelerometer data
     Vector3d accelData = accelerometers.fetch();
     Serial.print("Average Acceleration: ");
-    Serial.print("X: ");
-    Serial.print(accelData.x());
+    // Serial.print("X: ");
+    // Serial.print(accelData.x());
     Serial.printf("X: %dg", accelData.x()); // Delete this if it doesn't work
-    Serial.print("g, Y: ");
-    Serial.print(accelData.y());
+    // Serial.print("g, Y: ");
+    // Serial.print(accelData.y());
     Serial.printf("Y: %dg", accelData.y()); // Delete this if it doesn't work
-    Serial.print("g, Z: ");
-    Serial.print(accelData.z());
+    // Serial.print("g, Z: ");
+    // Serial.print(accelData.z());
     Serial.printf("Z: %dg", accelData.z()); // Delete this if it doesn't work
-    Serial.println("g");
+    // Serial.println("g");
 
     delay(100);
 
