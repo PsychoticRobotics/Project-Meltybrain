@@ -55,14 +55,16 @@ void loop() {
     accelerometers.print(); // fetches and prints
     delay(100);
 
-    float low = 0;
-    float high = 1;
-
-    motors.motor_1_on(foo);
-    motors.motor_2_on(foo);
-    
-    motors.motor_1_coast();
-    motors.motor_2_coast();
+    float low = 0; // filler value
+    float high = 1; // filler value
+    if (angle <= PI) {
+        motors.motor_1_on(low);
+        motors.motor_2_on(high);
+    }
+    else {
+        motors.motor_1_on(high);
+        motors.motor_2_on(low);
+    }
 }
 
 // Trying stuff:
