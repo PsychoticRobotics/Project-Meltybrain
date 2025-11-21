@@ -51,7 +51,7 @@ void loop() {
     Serial.println("Fetching data...");
 
     // Fetch and output accelerometer data
-    accelerometers.print();
+    accelerometers.print(); // fetches and prints
     delay(100);
 
     float low = 0;
