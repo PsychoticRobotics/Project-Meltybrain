@@ -8,6 +8,8 @@
 #include <Wire.h>
 #include <SPI.h>
 
+const double GRAVITY = 9.81;
+
 bool Accelerometer::init(uint8_t add) {
     base.setI2CAddr(add); // Set the correct add so we're reading from the right thing
     base.begin(LIS331::USE_I2C); // We're using I2C
@@ -38,10 +40,10 @@ Vector3d Accelerometer::fetch() {
     int16_t x, y, z;
     base.readAxes(x, y, z); // Read the raw values
 
-    return Vector3d{ // Convert to g's and return
-            base.convertToG(400, x), // 400 g's is the max range in HIGH_RANGE mode
-            base.convertToG(400, y),
-            base.convertToG(400, z)
+    return Vector3d{ // Convert to g's and return (original), made it return straight m/s^2 (* GRAVITY)
+            base.convertToG(400, x) * GRAVITY, // 400 g's is the max range in HIGH_RANGE mode
+            base.convertToG(400, y) * GRAVITY,
+            base.convertToG(400, z) * GRAVITY
     };
 }
 
