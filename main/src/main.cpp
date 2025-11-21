@@ -57,6 +57,7 @@ void loop() {
 
     float low = 0; // filler value
     float high = 1; // filler value
+    
     if (angle <= PI) {
         motors.motor_1_on(low);
         motors.motor_2_on(high);
