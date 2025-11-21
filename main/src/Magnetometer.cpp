@@ -1,6 +1,10 @@
 #include <Arduino.h>
 #include "Magnetometer.h"
-   
+
+/* initialization function */
+
+
+
    //-----------------mag-stuff------------------------//
 
         float magnetometer_xy = 0.7071 * (magnetometer_x + magnetometer_y);
