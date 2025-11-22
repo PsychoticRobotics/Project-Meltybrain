@@ -1,63 +1,88 @@
-//this module handles interfacing to the motors
-
-#include <Arduino.h>
 #include "Motor.h"
+#include <Arduino.h>
 
-//motor_X_on functions are used for the powered phase of each rotation
-//motor_X_coast functions are used for the unpowered phase of each rotation
-//motor_X_off functions are used for when the robot is spun-down
+//TODO: implement some kind of idle state and spin state (so it doesn't fuck up)
+//very far in the future TODO: backup in case spin fails
+//TODO: implement turning math
+//we will be getting data from both ir sensing and acceleration
 
-void motor_on(float throttle_percent, int motor_pin) {
-    analogWrite(motor_pin, PWM_MOTOR_ON);
+const int PWM_1000us = 65536 * 40 / 100;
+const int PWM_2000us = 65536 * 80 / 100;
 
-//If DYNAMIC_PWM_THROTTLE - PWM is scaled between PWM_MOTOR_COAST and PWM_MOTOR_ON
-//Applies over range defined by DYNAMIC_PWM_THROTTLE_PERCENT_MAX - maxed at PWM_MOTOR_ON above this
-  /*if (THROTTLE_TYPE == DYNAMIC_PWM_THROTTLE) {
-    float throttle_pwm = PWM_MOTOR_COAST + ((throttle_percent / DYNAMIC_PWM_THROTTLE_PERCENT_MAX) * (PWM_MOTOR_ON - PWM_MOTOR_COAST));
-    if (throttle_pwm > PWM_MOTOR_ON) throttle_pwm = PWM_MOTOR_ON;
-    analogWrite(motor_pin, throttle_pwm);
-  }*/
+// PRIVATE: set motor power during the powered phase
+void Motor::motor_on(float motor_percent, int motor_pin) {
+  // Simple fixed PWM
+  analogWrite(motor_pin, PWM_MOTOR_ON);
+
+  // Optional: scale PWM by throttle_percent if using dynamic throttle
+  /* float throttle_pwm = PWM_MOTOR_COAST + motor_percent * (PWM_MOTOR_ON - PWM_MOTOR_COAST);
+     if (throttle_pwm > PWM_MOTOR_ON) throttle_pwm = PWM_MOTOR_ON;
+     analogWrite(motor_pin, throttle_pwm);
+  */
 }
 
-void motor_1_on(float throttle_percent) {
+// PUBLIC: turn motor 1 on
+void Motor::motor_1_on(float throttle_percent) {
   motor_on(throttle_percent, MOTOR_PIN1);
 }
 
-void motor_2_on(float throttle_percent) {
+// PUBLIC: turn motor 2 on
+void Motor::motor_2_on(float throttle_percent) {
   motor_on(throttle_percent, MOTOR_PIN2);
 }
 
-void motor_coast(int motor_pin) {
-    analogWrite(motor_pin, PWM_MOTOR_COAST);
+// PRIVATE: coast phase
+void Motor::motor_coast(int motor_pin) {
+  analogWrite(motor_pin, PWM_MOTOR_COAST);
 }
 
-void motor_1_coast() {
+// PUBLIC: coast motor 1
+void Motor::motor_1_coast() {
   motor_coast(MOTOR_PIN1);
 }
 
-void motor_2_coast() {
+// PUBLIC: coast motor 2
+void Motor::motor_2_coast() {
   motor_coast(MOTOR_PIN2);
 }
 
-void motor_off(int motor_pin) {
-  analogWrite(motor_pin, PWM_MOTOR_OFF);
+// PRIVATE: turn motor off
+void Motor::motor_break(int motor_pin) {
+  analogWrite(motor_pin, PWM_MOTOR_BREAK);
 }
 
-void motor_1_off() {
-  motor_off(MOTOR_PIN1);
+// PUBLIC: motor 1 off
+void Motor::motor_1_break() {
+  motor_break(MOTOR_PIN1);
 }
 
-void motor_2_off() {
-  motor_off(MOTOR_PIN2);
+// PUBLIC: motor 2 off
+void Motor::motor_2_break() {
+  motor_break(MOTOR_PIN2);
 }
 
-void motors_off() {
-  motor_1_off();
-  motor_2_off();
+// PUBLIC: both motors off
+void Motor::motors_break() {
+  motor_1_break();
+  motor_2_break();
 }
 
-void init_motors() {
+// PUBLIC: initialize pins
+void Motor::init_motors() {
   pinMode(MOTOR_PIN1, OUTPUT);
   pinMode(MOTOR_PIN2, OUTPUT);
-  motors_off();
+  motors_break();
 }
+
+int throttleToPWM(float input, bool stretch) {
+    // Constrain the throttle value between 0 and 1
+    input = constrain(input, -1.0, 1.0);
+    /*// do non-linear stretch or not?
+    if (stretch) {
+        input = stretchThrottle(input);
+    }*/
+    // Map the throttle value (-1 to 1) to the PWM duty cycle values (1000us and 2000us converted to the 400Hz PWM)
+    return map(input, -1, 1, PWM_1000us, PWM_2000us);
+}
+
+

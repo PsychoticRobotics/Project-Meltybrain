@@ -1,35 +1,49 @@
-#ifndef MOTOR_PIN1 2
-#ifndef MOTOR_PIN2 3
+#ifndef MOTOR_H
+#define MOTOR_H
+#include <Arduino.h>
 
+// Motor pins
+#ifndef MOTOR_PIN1
 #define MOTOR_PIN1 2
+#endif
+
+#ifndef MOTOR_PIN2
 #define MOTOR_PIN2 3
+#endif
 
-//stole these from openmelt we can mess around w/ values later
-#define PWM_MOTOR_ON 230                          
-#define PWM_MOTOR_COAST 100                   
-#define PWM_MOTOR_OFF 100                  
 
+
+// PWM values
+#define PWM_MOTOR_ON 230 //hi
+#define PWM_MOTOR_COAST 100
+#define PWM_MOTOR_BREAK 100 //lo
 
 class Motor {
 public:
     Motor() = default;
 
-    //intitialize motors
+    // Initialize motors
     void init_motors();
 
-    //turn motor_X_on 
-    void motor_1_on(float throttle_percent); 
+    // Public motor control functions
+    void motor_1_on(float throttle_percent);
     void motor_2_on(float throttle_percent);
 
-    //motors shut-down (robot not translating)
-    void motor_1_off();
-    void motor_2_off();
-    void motors_off();
+    void motor_1_break();
+    void motor_2_break();
+    void motors_break();
 
-    //motors coasting (unpowered part of rotation when translating)
     void motor_1_coast();
     void motor_2_coast();
+
+
+
+
+private:
+    // Private helper functions
+    void motor_on(float throttle_percent, int motor_pin);
+    void motor_break(int motor_pin);
+    void motor_coast(int motor_pin);
 };
 
-#endif
-#endif
+#endif // MOTOR_H
