@@ -26,6 +26,7 @@ public:
     void init_motors();
 
     // Public motor control functions
+    void motors_on (float throttle_percent);
     void motor_1_on(float throttle_percent);
     void motor_2_on(float throttle_percent);
 

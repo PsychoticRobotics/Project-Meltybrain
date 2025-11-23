@@ -49,23 +49,37 @@ void setup() {
 }
 
 void loop() {
-    Serial.println("Fetching data...");
+    //Serial.println("Fetching data...");
 
     // Fetch and output accelerometer data
-    accelerometers.print(); // fetches and prints
-    delay(100);
+    //Vector3d a_vec = accelerometers.print(); // fetches and prints
+    
+    //delay(100);
 
     float low = 0; // filler value
+    float mid = 0.5;
     float high = 1; // filler value
+
+    motors.motors_on(high);
+    delay(100);
+    motors.motors_break();
+    delay(100);
+    motors.motors_on(mid);
+    delay(100);
+    motors.motors_on(low);
+    delay(100);
+    motors.motors_break();
+
+
     
-    if (angle <= PI) {
+    /*if (angle <= PI) {
         motors.motor_1_on(low);
         motors.motor_2_on(high);
     }
     else {
         motors.motor_1_on(high);
         motors.motor_2_on(low);
-    }
+    }*/
 }
 
 // Trying stuff:
