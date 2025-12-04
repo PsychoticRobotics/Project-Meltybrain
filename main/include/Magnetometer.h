@@ -1,6 +1,6 @@
-#include <Arduino.h>
-
-class Magnetometer {
-public:
-    
-}
+//#include <Arduino.h>
+//
+//class Magnetometer {
+//public:
+//
+//}

@@ -13,7 +13,7 @@
 
 
 AccelerometerManager accelerometers;
-Motor motors;
+//Motor motors;
 
 [[noreturn]] void quit() {
     Serial.println("Exiting program.");
@@ -37,7 +37,7 @@ void setup() {
             Wire.begin();
             Wire.setClock(400000); // I2C fast mode
 
-            if (!accelerometers.setup(0x19)) quit(); // Initialize accelerometer with I2C address 0x19
+            if (!accelerometers.setup(0x19, 0x18)) quit(); // Initialize accelerometer with I2C address 0x19
 
             break;
         default:
@@ -45,54 +45,37 @@ void setup() {
             quit();
     }
 
-    motors.init_motors();
+//    motors.init_motors();
 }
 
 void loop() {
     Serial.println("Fetching data...");
 
     // Fetch and output accelerometer data
-    accelerometers.print(); // fetches and prints
-    delay(100);
-
-    float low = 0; // filler value
-    float high = 1; // filler value
-    
-    if (angle <= PI) {
-        motors.motor_1_on(low);
-        motors.motor_2_on(high);
-    }
-    else {
-        motors.motor_1_on(high);
-        motors.motor_2_on(low);
-    }
-}
-
-// Trying stuff:
-/*
-Vector3d accelData;
-Vector3d gyroData;
-Vector3d magData;
-
-void readAccel() { accelData = accelerometers.fetch(); }
-void readGyro()  { gyroData  = gyros.fetch(); }
-void readMag()   { magData   = magnetometer.fetch(); }
-*/
-
-// Old code:
-/*
-
     Vector3d accelData = accelerometers.fetch();
     Serial.print("Average Acceleration: ");
-    // Serial.print("X: ");
-    // Serial.print(accelData.x());
-    Serial.printf("X: %dg", accelData.x()); // Delete this if it doesn't work
-    // Serial.print("g, Y: ");
-    // Serial.print(accelData.y());
-    Serial.printf("Y: %dg", accelData.y()); // Delete this if it doesn't work
-    // Serial.print("g, Z: ");
-    // Serial.print(accelData.z());
-    Serial.printf("Z: %dg", accelData.z()); // Delete this if it doesn't work
-    // Serial.println("g");
-    
-*/
+    Serial.print("X: ");
+    Serial.print(accelData.x());
+    // Serial.printf("X: %dg", accelData.x()); // Delete this if it doesn't work
+    Serial.print("g, Y: ");
+    Serial.print(accelData.y());
+    // Serial.printf("Y: %dg", accelData.y()); // Delete this if it doesn't work
+    Serial.print("g, Z: ");
+    Serial.print(accelData.z());
+    // Serial.printf("Z: %dg", accelData.z()); // Delete this if it doesn't work
+    Serial.println("g");
+
+    delay(100);
+
+//    float low = 0; // filler value
+//    float high = 1; // filler value
+//
+//    if (angle <= PI) {
+//        motors.motor_1_on(low);
+//        motors.motor_2_on(high);
+//    }
+//    else {
+//        motors.motor_1_on(high);
+//        motors.motor_2_on(low);
+//    }
+}

@@ -6,6 +6,12 @@
 #ifndef MAIN_CONFIG_H
 #define MAIN_CONFIG_H
 
-#define PROTOCOL 0 // 0 = SPI, 1 = I2C
+#define PROTOCOL 1 // 0 = SPI, 1 = I2C
+
+enum Basis {
+    WORLD,
+    ROBOT,
+    SELF
+};
 
 #endif //MAIN_CONFIG_H
