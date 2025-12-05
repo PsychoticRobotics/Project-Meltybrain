@@ -1,35 +1,40 @@
-//#ifndef MOTOR_PIN1 2
-//#ifndef MOTOR_PIN2 3
-//
-//#define MOTOR_PIN1 2
-//#define MOTOR_PIN2 3
-//
-////stole these from openmelt we can mess around w/ values later
-//#define PWM_MOTOR_ON 230
-//#define PWM_MOTOR_COAST 100
-//#define PWM_MOTOR_OFF 100
-//
-//
-//class Motor {
-//public:
-//    Motor() = default;
-//
-//    //intitialize motors
-//    void init_motors();
-//
-//    //turn motor_X_on
-//    void motor_1_on(float throttle_percent);
-//    void motor_2_on(float throttle_percent);
-//
-//    //motors shut-down (robot not translating)
-//    void motor_1_off();
-//    void motor_2_off();
-//    void motors_off();
-//
-//    //motors coasting (unpowered part of rotation when translating)
-//    void motor_1_coast();
-//    void motor_2_coast();
-//};
-//
-//#endif
-//#endif
+#ifndef MELTYBRAIN_MOTOR_H
+#define MELTYBRAIN_MOTOR_H
+
+#include <Servo.h>
+
+#define PWM_BASE 1000
+#define PWM_RANGE 1000
+
+class Motor {
+public:
+    void init(int pin);
+    void on(float throttle_percent);
+    void off();
+    void coast();
+
+private:
+    Servo base;
+};
+
+class MotorManager {
+public:
+
+    //initialize motors
+    void init(int pin1, int pin2);
+
+    //turn motor_X_on
+    void on(float throttle_percent);
+    void on(float throttle_percen1, float throttle_percent2);
+
+    //motors shut-down (robot not translating)
+    void off(int motor = 0); //0 = both, 1 = motor 1, 2 = motor 2
+
+    void coast(int motor = 0); //0 = both, 1 = motor 1, 2 = motor 2
+
+private:
+    Motor motor1;
+    Motor motor2;
+};
+
+#endif //MELTYBRAIN_MOTOR_H

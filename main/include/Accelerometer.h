@@ -30,7 +30,7 @@ public:
 
     bool setup(int in1, int in2);
     bool setup(int in);
-    Vector3d fetch(Basis basis);
+    Vector3d fetch(Basis basis = Basis::SELF);
 };
 
 #endif //MELTYBRAIN_ACCELEROMETER_H

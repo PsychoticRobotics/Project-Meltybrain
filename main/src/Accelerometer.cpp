@@ -98,7 +98,7 @@ bool AccelerometerManager::setup(int in) {
 
 // Return the average of the two accelerometers if both are initialized,
 // otherwise return data from the one that is
-Vector3d AccelerometerManager::fetch(Basis basis = Basis::SELF) {
+Vector3d AccelerometerManager::fetch(Basis basis) {
     assert(accel1.initialized);
     Vector3d data;
     if (accel2.initialized)
