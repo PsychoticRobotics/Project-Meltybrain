@@ -52,7 +52,7 @@
 //
 ///*
 //// -------------------- Read IR distance --------------------
-//void SensorFusion::readIR() {
+//void Robot::readIR() {
 //    // Replace with actual IR sensor reading code
 //    // For example: analogRead(pin) or a digital LiDAR read
 //    // Here, we simulate with a placeholder

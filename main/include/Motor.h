@@ -3,9 +3,6 @@
 
 #include <Servo.h>
 
-#define PWM_BASE 1000
-#define PWM_RANGE 1000
-
 class Motor {
 public:
     void init(int pin);
@@ -15,6 +12,8 @@ public:
 
 private:
     Servo base;
+    int pwm_base = 1000;
+    int pwm_range = 1000;
 };
 
 class MotorManager {
@@ -24,8 +23,8 @@ public:
     void init(int pin1, int pin2);
 
     //turn motor_X_on
-    void on(float throttle_percent);
-    void on(float throttle_percen1, float throttle_percent2);
+    void on(float motor_percent);
+    void on(float motor_percent1, float motor_percent2);
 
     //motors shut-down (robot not translating)
     void off(int motor = 0); //0 = both, 1 = motor 1, 2 = motor 2

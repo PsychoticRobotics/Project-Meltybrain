@@ -8,10 +8,4 @@
 
 #define PROTOCOL 1 // 0 = SPI, 1 = I2C
 
-enum Basis {
-    WORLD,
-    ROBOT,
-    SELF
-};
-
 #endif //MAIN_CONFIG_H

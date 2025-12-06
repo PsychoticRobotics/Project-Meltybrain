@@ -2,19 +2,19 @@
 
 void Motor::init(int pin) {
     base.attach(pin);
-    base.writeMicroseconds(PWM_BASE);
+    base.writeMicroseconds(pwm_base);
 }
 
 void Motor::on(float throttle_percent) {
-    base.writeMicroseconds(PWM_BASE + (throttle_percent / 100.0f) * PWM_RANGE);
+    base.writeMicroseconds(pwm_base + (throttle_percent / 100.0f) * pwm_range);
 }
 
 void Motor::off() {
-    base.writeMicroseconds(PWM_BASE);
+    base.writeMicroseconds(pwm_base);
 }
 
 void Motor::coast() {
-    base.writeMicroseconds(PWM_BASE);
+    base.writeMicroseconds(pwm_base);
 }
 
 void MotorManager::init(int pin1, int pin2) {
@@ -22,14 +22,14 @@ void MotorManager::init(int pin1, int pin2) {
     motor2.init(pin2);
 }
 
-void MotorManager::on(float throttle_percent) {
-    motor1.on(throttle_percent);
-    motor2.on(throttle_percent);
+void MotorManager::on(float motor_percent) {
+    motor1.on(motor_percent);
+    motor2.on(motor_percent);
 }
 
-void MotorManager::on(float throttle_percent1, float throttle_percent2) {
-    motor1.on(throttle_percent1);
-    motor2.on(throttle_percent2);
+void MotorManager::on(float motor_percent1, float motor_percent2) {
+    motor1.on(motor_percent1);
+    motor2.on(motor_percent2);
 }
 
 void MotorManager::off(int motor) {

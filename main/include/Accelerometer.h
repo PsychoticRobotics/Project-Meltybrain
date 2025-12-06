@@ -1,8 +1,3 @@
-//
-// Created by Atharv Goel on 9/20/25.
-// Updated last by Atharv Goel on 9/28/25.
-//
-
 #ifndef MELTYBRAIN_ACCELEROMETER_H
 #define MELTYBRAIN_ACCELEROMETER_H
 
@@ -30,7 +25,8 @@ public:
 
     bool setup(int in1, int in2);
     bool setup(int in);
-    Vector3d fetch(Basis basis = Basis::SELF);
+    Vector3d fetchXYZ();
+    Vector3d fetchNTU();
 };
 
 #endif //MELTYBRAIN_ACCELEROMETER_H

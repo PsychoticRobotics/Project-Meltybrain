@@ -1,8 +1,3 @@
-//
-// Created by Atharv Goel on 9/20/25.
-// Updated last by Peter Elmer on 12/4/25.
-//
-
 #include "Accelerometer.h"
 #include "Config.h"
 #include <Wire.h>
@@ -98,7 +93,8 @@ bool AccelerometerManager::setup(int in) {
 
 // Return the average of the two accelerometers if both are initialized,
 // otherwise return data from the one that is
-Vector3d AccelerometerManager::fetch(Basis basis) {
+// Raw X, Y, Z of the accelerometers
+Vector3d AccelerometerManager::fetchXYZ() {
     assert(accel1.initialized);
     Vector3d data;
     if (accel2.initialized)
@@ -106,13 +102,28 @@ Vector3d AccelerometerManager::fetch(Basis basis) {
     else
         data = accel1.fetch();
 
+    return data;
     if (basis == Basis::SELF) // The accelerometer's own basis requires no transformation
         return data;
-    else if (basis == Basis::ROBOT) // Rotate from self to robot basis
+    else if (basis == Basis::ROBOT) // Rotate from self to robot basis (normal, tangential, up)
         return {SQRT_2_OVER_2 * (data.y() + data.z()), data.x(), SQRT_2_OVER_2 * (data.y() - data.z())};
     else if (basis == Basis::WORLD)
         Serial.println("Error: WORLD basis for accelerometer data not supported");
     else
         Serial.println("Error: Unknown basis specified for accelerometer");
     return {0, 0, 0};
+}
+
+// Return the average of the two accelerometers if both are initialized,
+// otherwise return data from the one that is
+// Raw normal, tangential, up of the accelerometers
+Vector3d AccelerometerManager::fetchNTU() {
+    assert(accel1.initialized);
+    Vector3d data;
+    if (accel2.initialized)
+        data = (accel1.fetch() + accel2.fetch()) / 2.0;
+    else
+        data = accel1.fetch();
+
+    return {SQRT_2_OVER_2 * (data.y() + data.z()), data.x(), SQRT_2_OVER_2 * (data.y() - data.z())};
 }
