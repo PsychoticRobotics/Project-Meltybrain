@@ -24,5 +24,5 @@ void Robot::move(float channel1, float channel2, float channel3, uint32_t dt) {
     else
         motors->on(map(channel1, -1, 1, low, high),
                    map(channel1, -1, 1, high, low));
-    theta += channel2 * 0.000001 * PI * dt; // Rotates once a second at full channel 2 input
+    theta += channel2 * 0.000001 * PI * dt; // Rotates once a microsecond at full channel 2 input
 }
