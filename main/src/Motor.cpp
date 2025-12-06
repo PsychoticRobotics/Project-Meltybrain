@@ -2,6 +2,7 @@
 
 void Motor::init(int pin) {
     base.attach(pin);
+    base.writeMicroseconds(PWM_BASE);
 }
 
 void Motor::on(float throttle_percent) {

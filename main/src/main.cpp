@@ -46,6 +46,7 @@ void setup() {
     }
 
     motors.init(14, 15);
+    delay(1000); // Motors/ESCs need at least 1 second to arm
     motors.on(15, 15);
     delay(5000);
     motors.off();
