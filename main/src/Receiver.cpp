@@ -5,9 +5,9 @@
 //(but not in any way that suggests that we endorse you or your use of the work) and license your new creations under the identical terms.
 //This code and instruction is provided "As Is” without any further warranty. Neither Carbon Aeronautics or the author has any liability to any person or entity
 //with respect to any loss or damage caused or declared to be caused directly or indirectly by the instructions contained in this code or by
-//the software and hardware described in it. As Carbon Aeronautics has no control over the use, setup, assembly, modification or misuse of the hardware,
+//the software and hardware described in it. As Carbon Aeronautics has no control over the use, init, assembly, modification or misuse of the hardware,
 //software and information described in this manual, no liability shall be assumed nor accepted for any resulting damage or injury.
-//By the act of copying, use, setup or assembly, the user accepts all resulting liability.
+//By the act of copying, use, init or assembly, the user accepts all resulting liability.
 //
 //1.0  5 October 2022 -  initial release
 //*/
@@ -24,7 +24,7 @@
 //    }
 //  }
 //}
-//void setup() {
+//void init() {
 //  Serial.begin(57600);
 //  pinMode(13, OUTPUT);
 //  digitalWrite(13, HIGH);
@@ -44,3 +44,20 @@
 //  Serial.println(ReceiverValue[3]);
 //  delay(50);
 //}
+
+#include "Receiver.h"
+#include <cassert>
+
+Receiver::Receiver() : ReceiverInput(RISING) {}
+
+void Receiver::init(int pin) {
+    if (!initialized) {
+        ReceiverInput.begin(pin);
+        initialized = true;
+    }
+}
+
+float Receiver::fetch(int channel) {
+    assert(initialized);
+    return ReceiverInput.read(channel);
+}

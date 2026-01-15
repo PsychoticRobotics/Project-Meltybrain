@@ -1,10 +1,6 @@
-//
-// Created by Atharv Goel on 9/21/25.
-// Updated last by Peter Elmer on 10/20/25.
-//
-
 #include "Accelerometer.h"
 #include "Motor.h"
+#include "Receiver.h"
 #include "Robot.h"
 #include "../lib/Eigen/Dense"
 #include "Config.h"
@@ -14,6 +10,7 @@
 
 AccelerometerManager accelerometers;
 MotorManager motors;
+Receiver receiver;
 Robot robot(accelerometers, motors);
 
 unsigned previousTime = 0;
@@ -34,14 +31,14 @@ void setup() {
             pinMode(MISO, INPUT);
             pinMode(SCK, OUTPUT);
 
-            if (!accelerometers.setup(10)) quit(); // Initialize accelerometer with CS pin 10
+            if (!accelerometers.init(10)) quit(); // Initialize accelerometer with CS pin 10
 
             break;
         case 1: // I2C
             Wire.begin();
             Wire.setClock(400000); // I2C fast mode
 
-            if (!accelerometers.setup(0x19, 0x18)) quit(); // Initialize accelerometer with I2C address 0x19
+            if (!accelerometers.init(0x19, 0x18)) quit(); // Initialize accelerometers with I2C addresses 0x18, 0x19
 
             break;
         default:
@@ -49,12 +46,29 @@ void setup() {
             quit();
     }
 
+    receiver.init(2); // Initialize receiver on pin 2
     motors.init(14, 15);
     delay(1000); // Motors/ESCs need at least 1 second to arm
 }
 
 void loop() {
-    currentTime = micros();
-    robot.move(0.0f, 0.0f, 0.0f, currentTime - previousTime);
-    previousTime = currentTime;
+    Serial.print("Receiver: ");
+    Serial.print("Ch 1: ");
+    Serial.print(receiver.fetch(1));
+    Serial.print(" Ch 2: ");
+    Serial.print(receiver.fetch(2));
+    Serial.print(" Ch 3: ");
+    Serial.println(receiver.fetch(3));
+    Serial.print("Accelerometer NTU: ");
+    Vector3d accelData = accelerometers.fetchNTU();
+    Serial.print("N: ");
+    Serial.print(accelData.x());
+    Serial.print(" T: ");
+    Serial.print(accelData.y());
+    Serial.print(" U: ");
+    Serial.println(accelData.z());
+    delay(200);
+    // currentTime = micros();
+    // robot.move(0.0f, 0.0f, 0.0f, currentTime - previousTime);
+    // previousTime = currentTime;
 }

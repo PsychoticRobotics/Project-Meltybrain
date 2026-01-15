@@ -11,7 +11,7 @@ class Accelerometer {
 public:
     bool initialized = false;
 
-    bool init(int in);
+    bool init(int addr);
     Vector3d fetch();
 
 private:
@@ -23,8 +23,8 @@ public:
     Accelerometer accel1;
     Accelerometer accel2;
 
-    bool setup(int in1, int in2);
-    bool setup(int in);
+    bool init(int addr1, int addr2);
+    bool init(int addr);
     Vector3d fetchXYZ();
     Vector3d fetchNTU();
 };

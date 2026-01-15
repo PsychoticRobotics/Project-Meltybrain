@@ -6,21 +6,21 @@
 const double GRAVITY = 9.81;
 const double SQRT_2_OVER_2 = 0.70710678118;
 
-bool Accelerometer::init(int in) {
+bool Accelerometer::init(int addr) {
     switch (PROTOCOL) {
         case 0: // SPI
-            pinMode(in, OUTPUT); // Set the chip select pin
-            digitalWrite(in, HIGH);
+            pinMode(addr, OUTPUT); // Set the chip select addr
+            digitalWrite(addr, HIGH);
             SPI.begin();
 
-            base.setSPICSPin(in); // Set the correct CS pin so we're reading from the right thing
+            base.setSPICSPin(addr); // Set the correct CS addr so we're reading from the right thing
             base.begin(LIS331::USE_SPI); // We're using SPI
 
             base.setFullScale(LIS331::HIGH_RANGE); // +/- 400g range
             base.setODR(LIS331::DR_1000HZ); // Getting data as frequently as possible will hopefully minimize drift (but might amplify noise)
             break;
         case 1: // I2C
-            base.setI2CAddr(in); // Set the correct add so we're reading from the right thing
+            base.setI2CAddr(addr); // Set the correct add so we're reading from the right thing
             base.begin(LIS331::USE_I2C); // We're using I2C
 
             base.setFullScale(LIS331::HIGH_RANGE); // +/- 400g range
@@ -43,26 +43,26 @@ Vector3d Accelerometer::fetch() {
     };
 }
 
-bool AccelerometerManager::setup(int in1, int in2) {
+bool AccelerometerManager::init(int addr1, int addr2) {
     bool success = false;
     switch (PROTOCOL) {
         case 0: // SPI
-            if (accel1.init(in1)) {
-                Serial.println("Accelerometer one initialized at pin " + String(in1));
+            if (accel1.init(addr1)) {
+                Serial.println("Accelerometer one initialized at pin " + String(addr1));
                 success = true;
             }
-            if (accel2.init(in2)) {
-                Serial.println("Accelerometer two initialized at pin " + String(in2));
+            if (accel2.init(addr2)) {
+                Serial.println("Accelerometer two initialized at pin " + String(addr2));
                 success = true;
             }
             break;
         case 1: // I2C
-            if (accel1.init((uint8_t) in1)) {
-                Serial.println("Accelerometer one initialized at 0x" + String(in1, HEX));
+            if (accel1.init((uint8_t) addr1)) {
+                Serial.println("Accelerometer one initialized at 0x" + String(addr1, HEX));
                 success = true;
             }
-            if (accel2.init((uint8_t) in2)) {
-                Serial.println("Accelerometer two initialized at 0x" + String(in2, HEX));
+            if (accel2.init((uint8_t) addr2)) {
+                Serial.println("Accelerometer two initialized at 0x" + String(addr2, HEX));
                 success = true;
             }
             break;
@@ -72,17 +72,17 @@ bool AccelerometerManager::setup(int in1, int in2) {
     return success; // Return true if at least one accelerometer initialized successfully
 }
 
-bool AccelerometerManager::setup(int in) {
+bool AccelerometerManager::init(int addr) {
     switch (PROTOCOL) {
         case 0: // SPI
-            if (accel1.init(in)) {
-                Serial.println("Accelerometer initialized at pin " + String(in));
+            if (accel1.init(addr)) {
+                Serial.println("Accelerometer initialized at addr " + String(addr));
                 return true;
             }
             break;
         case 1: // I2C
-            if (accel1.init((uint8_t) in)) {
-                Serial.println("Accelerometer initialized at 0x" + String(in, HEX));
+            if (accel1.init((uint8_t) addr)) {
+                Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
                 return true;
             }
             break;
@@ -103,15 +103,6 @@ Vector3d AccelerometerManager::fetchXYZ() {
         data = accel1.fetch();
 
     return data;
-    if (basis == Basis::SELF) // The accelerometer's own basis requires no transformation
-        return data;
-    else if (basis == Basis::ROBOT) // Rotate from self to robot basis (normal, tangential, up)
-        return {SQRT_2_OVER_2 * (data.y() + data.z()), data.x(), SQRT_2_OVER_2 * (data.y() - data.z())};
-    else if (basis == Basis::WORLD)
-        Serial.println("Error: WORLD basis for accelerometer data not supported");
-    else
-        Serial.println("Error: Unknown basis specified for accelerometer");
-    return {0, 0, 0};
 }
 
 // Return the average of the two accelerometers if both are initialized,
