@@ -6,7 +6,7 @@
 const double GRAVITY = 9.81;
 const double SQRT_2_OVER_2 = 0.70710678118;
 
-bool Accelerometer::init(int addr) {
+void Accelerometer::init(int addr) {
     switch (PROTOCOL) {
         case 0: // SPI
             pinMode(addr, OUTPUT); // Set the chip select addr
@@ -25,16 +25,13 @@ bool Accelerometer::init(int addr) {
 
             base.setFullScale(LIS331::HIGH_RANGE); // +/- 400g range
             base.setODR(LIS331::DR_1000HZ); // Getting data as frequently as possible will hopefully minimize drift (but might amplify noise)
-            return false;
     }
     initialized = true;
-    return true; // Ideally return false if initialization fails, however, there is no way of checking :(
 }
 
 Vector3d Accelerometer::fetch() {
     int16_t x, y, z;
     base.readAxes(x, y, z); // Read the raw values
-    Serial.println("RAW x: " + String(x) + " y: " + String(y) + " z: " + String(z));
 
     return Vector3d{ // Convert to g's and return
             base.convertToG(400, x) * GRAVITY, // 400 g's is the max range in HIGH_RANGE mode
@@ -43,52 +40,34 @@ Vector3d Accelerometer::fetch() {
     };
 }
 
-bool AccelerometerManager::init(int addr1, int addr2) {
-    bool success = false;
+void AccelerometerManager::init(int addr1, int addr2) {
     switch (PROTOCOL) {
         case 0: // SPI
-            if (accel1.init(addr1)) {
-                Serial.println("Accelerometer one initialized at pin " + String(addr1));
-                success = true;
-            }
-            if (accel2.init(addr2)) {
-                Serial.println("Accelerometer two initialized at pin " + String(addr2));
-                success = true;
-            }
+            accel1.init(addr1);
+            Serial.println("Accelerometer one initialized at pin " + String(addr1));
+            accel2.init(addr2);
+            Serial.println("Accelerometer two initialized at pin " + String(addr2));
             break;
         case 1: // I2C
-            if (accel1.init((uint8_t) addr1)) {
-                Serial.println("Accelerometer one initialized at 0x" + String(addr1, HEX));
-                success = true;
-            }
-            if (accel2.init((uint8_t) addr2)) {
-                Serial.println("Accelerometer two initialized at 0x" + String(addr2, HEX));
-                success = true;
-            }
+            accel1.init((uint8_t) addr1);
+            Serial.println("Accelerometer one initialized at 0x" + String(addr1, HEX));
+            accel2.init((uint8_t) addr2);
+            Serial.println("Accelerometer two initialized at 0x" + String(addr2, HEX));
             break;
     }
-    if (!success)
-        Serial.println("Failed to initialize any accelerometers");
-    return success; // Return true if at least one accelerometer initialized successfully
 }
 
-bool AccelerometerManager::init(int addr) {
+void AccelerometerManager::init(int addr) {
     switch (PROTOCOL) {
         case 0: // SPI
-            if (accel1.init(addr)) {
-                Serial.println("Accelerometer initialized at addr " + String(addr));
-                return true;
-            }
+            accel1.init(addr);
+            Serial.println("Accelerometer initialized at addr " + String(addr));
             break;
         case 1: // I2C
-            if (accel1.init((uint8_t) addr)) {
-                Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
-                return true;
-            }
+            accel1.init((uint8_t) addr);
+            Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
             break;
     }
-    Serial.println("Failed to initialize accelerometer");
-    return false;
 }
 
 // Return the average of the two accelerometers if both are initialized,

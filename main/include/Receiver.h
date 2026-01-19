@@ -12,7 +12,7 @@ public:
     float fetch(int channel);
 
 private:
-    PulsePositionInput ReceiverInput;
+    PulsePositionInput ReceiverInput{};
 };
 
 #endif //MAIN_RECEIVER_H
