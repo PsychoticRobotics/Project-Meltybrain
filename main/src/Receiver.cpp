@@ -48,16 +48,32 @@
 #include "Receiver.h"
 #include <cassert>
 
-Receiver::Receiver() : ReceiverInput(RISING) {}
-
-void Receiver::init(int pin) {
+void Receiver::init(int pin1, int pin2, int pin3, int pin4) {
     if (!initialized) {
-        ReceiverInput.begin(pin);
+        pinMode(pin1, INPUT);
+        this->pin1 = pin1;
+        pinMode(pin2, INPUT);
+        this->pin2 = pin2;
+        pinMode(pin3, INPUT);
+        this->pin3 = pin3;
+        pinMode(pin4, INPUT);
+        this->pin4 = pin4;
         initialized = true;
     }
 }
 
 float Receiver::fetch(int channel) {
     assert(initialized);
-    return ReceiverInput.read(channel);
+    switch (channel) {
+        case 1:
+            return pulseIn(pin1, HIGH, 25000);
+        case 2:
+            return pulseIn(pin2, HIGH, 25000);
+        case 3:
+            return pulseIn(pin3, HIGH, 25000);
+        case 4:
+            return pulseIn(pin4, HIGH, 25000);
+        default:
+            assert(false && "Invalid channel number");
+    }
 }

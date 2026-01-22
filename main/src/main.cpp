@@ -41,8 +41,8 @@ void setup() {
             Serial.println("Invalid protocol specified in Config.h");
     }
 
-    receiver.init(2); // Initialize receiver on pin 2
-    motors.init(14, 15);
+    receiver.init(2, 3, 4, 5);
+    // motors.init(14, 15);
     delay(1000); // Motors/ESCs need at least 1 second to arm
 }
 

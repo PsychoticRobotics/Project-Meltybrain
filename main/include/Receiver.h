@@ -7,12 +7,11 @@ class Receiver {
 public:
     bool initialized = false;
 
-    Receiver();
-    void init(int pin);
+    void init(int pin1, int pin2, int pin3, int pin4);
     float fetch(int channel);
 
 private:
-    PulsePositionInput ReceiverInput{};
+    int pin1, pin2, pin3, pin4;
 };
 
 #endif //MAIN_RECEIVER_H
