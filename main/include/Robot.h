@@ -14,9 +14,9 @@ public:
 
 private:
     double theta = 0.0f; // Robot's orientation angle in radians
-
     double accelerometerRadius = 0.033; // meters
     double accelerometerInterval = 0.000001; // seconds
+    double filteredAcceleration = 0.0f;
     AccelerometerManager *accelerometers;
 
     MotorManager *motors;

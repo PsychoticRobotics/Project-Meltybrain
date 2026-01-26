@@ -32,11 +32,10 @@ void Accelerometer::init(int addr) {
 Vector3d Accelerometer::fetch() {
     int16_t x, y, z;
     base.readAxes(x, y, z); // Read the raw values
-
     return Vector3d{ // Convert to g's and return
-            base.convertToG(400, x) * GRAVITY, // 400 g's is the max range in HIGH_RANGE mode
-            base.convertToG(400, y) * GRAVITY,
-            base.convertToG(400, z) * GRAVITY
+            base.convertToG(400, x) * GRAVITY / GRAVITY, // 400 g's is the max range in HIGH_RANGE mode
+            base.convertToG(400, y) * GRAVITY / GRAVITY,
+            base.convertToG(400, z) * GRAVITY / GRAVITY
     };
 }
 
@@ -94,6 +93,12 @@ Vector3d AccelerometerManager::fetchNTU() {
         data = (accel1.fetch() + accel2.fetch()) / 2.0;
     else
         data = accel1.fetch();
-
-    return {SQRT_2_OVER_2 * (data.y() + data.z()), data.x(), SQRT_2_OVER_2 * (data.y() - data.z())};
+    //Serial.print("Accelerometer: ");
+    //Serial.print("x: ");
+    Serial.print(data.x());
+    //Serial.print(" y: ");
+    Serial.print(data.y());
+    //Serial.print(" z: ");
+    Serial.println(data.z());
+    return {SQRT_2_OVER_2 * (data.x() + data.z()), data.y(), SQRT_2_OVER_2 * (data.z() - data.x())};
 }

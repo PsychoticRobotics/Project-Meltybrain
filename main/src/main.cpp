@@ -21,6 +21,9 @@ Robot robot(accelerometers, motors);
 unsigned previousTime = 0;
 unsigned currentTime = 0;
 
+float ch1 = 0;
+float ch2 = 0;
+float ch3 = 0;
 
 void setup() {
     Serial.begin(19200);
@@ -42,21 +45,23 @@ void setup() {
     }
 
     receiver.init(2, 3, 4, 5);
-    // motors.init(14, 15);
+    motors.init(13, 15);
     delay(1000); // Motors/ESCs need at least 1 second to arm
 }
 
 
 void loop() {
-    Serial.print("Receiver: ");
-    Serial.print("Ch 1: ");
-    Serial.print(receiver.fetch(1));
-    Serial.print(" Ch 2: ");
-    Serial.print(receiver.fetch(2));
-    Serial.print(" Ch 3: ");
-    Serial.println(receiver.fetch(3));
-    delay(20);
-    // currentTime = micros();
-    // robot.move(0.0f, 0.0f, 0.0f, currentTime - previousTime);
-    // previousTime = currentTime;
+    ch1 = receiver.fetch(1);
+    ch2 = receiver.fetch(2);
+    ch3 = receiver.fetch(3);
+    //Serial.print("Receiver: ");
+    //Serial.print("Ch 1: ");
+    //Serial.print(ch1);
+    //Serial.print(" Ch 2: ");
+    //Serial.print(ch2);
+    //Serial.print(" Ch 3: ");
+    //Serial.println(ch3);
+    currentTime = micros();
+    robot.move(ch1, ch2, ch3, currentTime - previousTime);
+    previousTime = currentTime;
 }
