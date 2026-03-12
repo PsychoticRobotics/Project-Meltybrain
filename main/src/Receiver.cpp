@@ -5,9 +5,9 @@
 //(but not in any way that suggests that we endorse you or your use of the work) and license your new creations under the identical terms.
 //This code and instruction is provided "As Is” without any further warranty. Neither Carbon Aeronautics or the author has any liability to any person or entity
 //with respect to any loss or damage caused or declared to be caused directly or indirectly by the instructions contained in this code or by
-//the software and hardware described in it. As Carbon Aeronautics has no control over the use, setup, assembly, modification or misuse of the hardware,
+//the software and hardware described in it. As Carbon Aeronautics has no control over the use, init, assembly, modification or misuse of the hardware,
 //software and information described in this manual, no liability shall be assumed nor accepted for any resulting damage or injury.
-//By the act of copying, use, setup or assembly, the user accepts all resulting liability.
+//By the act of copying, use, init or assembly, the user accepts all resulting liability.
 //
 //1.0  5 October 2022 -  initial release
 //*/
@@ -24,7 +24,7 @@
 //    }
 //  }
 //}
-//void setup() {
+//void init() {
 //  Serial.begin(57600);
 //  pinMode(13, OUTPUT);
 //  digitalWrite(13, HIGH);
@@ -44,3 +44,41 @@
 //  Serial.println(ReceiverValue[3]);
 //  delay(50);
 //}
+
+#include "Receiver.h"
+#include <cassert>
+
+void Receiver::init(int pin1, int pin2, int pin3, int pin4) {
+    if (!initialized) {
+        pinMode(pin1, INPUT);
+        this->pin1 = pin1;
+        pinMode(pin2, INPUT);
+        this->pin2 = pin2;
+        pinMode(pin3, INPUT);
+        this->pin3 = pin3;
+        pinMode(pin4, INPUT);
+        this->pin4 = pin4;
+        initialized = true;
+    }
+}
+
+float Receiver::fetch(int channel) {
+    if (!initialized) {
+        Serial.println("ERROR: Receiver::fetch() called before init().");
+        return 0.0f;
+    }
+    switch (channel) {
+        case 1:
+            return pulseIn(pin1, HIGH, 25000);
+        case 2:
+            return pulseIn(pin2, HIGH, 25000);
+        case 3:
+            return pulseIn(pin3, HIGH, 25000);
+        case 4:
+            return pulseIn(pin4, HIGH, 25000);
+        default:
+            Serial.print("ERROR: Invalid receiver channel requested: ");
+            Serial.println(channel);
+            return 0.0f;
+    }
+}
