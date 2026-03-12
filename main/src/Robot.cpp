@@ -10,7 +10,7 @@ void Robot::updateTheta(uint32_t dt) {
     double accelerationNormal = accelerometerData.x();
     //Serial.print("Normal: ");
     //Serial.println(accelerationNormal);
-    filteredAcceleration = (0.9 * filteredAcceleration) + (0.1 * accelerationNormal);
+    filteredAcceleration = (0.99 * filteredAcceleration) + (0.01 * accelerationNormal);
     //Serial.print("Filtered: ");
     //Serial.println(filteredAcceleration);
     double angularVelocity = sqrt(filteredAcceleration / accelerometerRadius);

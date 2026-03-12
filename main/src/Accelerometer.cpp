@@ -25,6 +25,9 @@ void Accelerometer::init(int addr) {
 
             base.setFullScale(LIS331::HIGH_RANGE); // +/- 400g range
             base.setODR(LIS331::DR_1000HZ); // Getting data as frequently as possible will hopefully minimize drift (but might amplify noise)
+            break;
+        default:
+            Serial.println("Error: Accelerometer::init - Unknown PROTOCOL selected");
     }
     initialized = true;
 }
@@ -53,27 +56,37 @@ void AccelerometerManager::init(int addr1, int addr2) {
             accel2.init((uint8_t) addr2);
             Serial.println("Accelerometer two initialized at 0x" + String(addr2, HEX));
             break;
+        default:
+             Serial.println("Error: AccelerometerManager::init (2 args) - Unknown PROTOCOL");
+             break;
     }
 }
 
-void AccelerometerManager::init(int addr) {
-    switch (PROTOCOL) {
-        case 0: // SPI
-            accel1.init(addr);
-            Serial.println("Accelerometer initialized at addr " + String(addr));
-            break;
-        case 1: // I2C
-            accel1.init((uint8_t) addr);
-            Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
-            break;
-    }
-}
+// void AccelerometerManager::init(int addr) {
+//     switch (PROTOCOL) {
+//         case 0: // SPI
+//             accel1.init(addr);
+//             Serial.println("Accelerometer initialized at addr " + String(addr));
+//             break;
+//         case 1: // I2C
+//             accel1.init((uint8_t) addr);
+//             Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
+//             break;
+//         default:
+//              Serial.println("Error: AccelerometerManager::init (1 arg) - Unknown PROTOCOL");
+//              break;
+//     }
+// }
 
 // Return the average of the two accelerometers if both are initialized,
 // otherwise return data from the one that is
 // Raw X, Y, Z of the accelerometers
 Vector3d AccelerometerManager::fetchXYZ() {
-    assert(accel1.initialized);
+    if (!accel1.initialized) {
+        Serial.println("ERROR: fetchXYZ() called but accelerometer not initialized.");
+        // Return a zero vector to prevent further issues
+        return Vector3d{0, 0, 0};
+    }
     Vector3d data;
     if (accel2.initialized)
         data = (accel1.fetch() + accel2.fetch()) / 2.0;
@@ -87,7 +100,11 @@ Vector3d AccelerometerManager::fetchXYZ() {
 // otherwise return data from the one that is
 // Raw normal, tangential, up of the accelerometers
 Vector3d AccelerometerManager::fetchNTU() {
-    assert(accel1.initialized);
+    if (!accel1.initialized) {
+        Serial.println("FATAL: fetchNTU() called but accelerometer not initialized. Halting.");
+        // This is a fatal error for the robot's logic.
+        while(1);
+    }
     Vector3d data;
     if (accel2.initialized)
         data = (accel1.fetch() + accel2.fetch()) / 2.0;
