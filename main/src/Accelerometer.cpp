@@ -2,6 +2,7 @@
 #include "Config.h"
 #include <Wire.h>
 #include <SPI.h>
+#include <SD.h>
 
 const double GRAVITY = 9.81;
 const double SQRT_2_OVER_2 = 0.70710678118;
@@ -9,19 +10,19 @@ const double SQRT_2_OVER_2 = 0.70710678118;
 void Accelerometer::init(int addr) {
     switch (PROTOCOL) {
         case 0: // SPI
-            pinMode(addr, OUTPUT); // Set the chip select addr
+            pinMode(addr, OUTPUT);
             digitalWrite(addr, HIGH);
             SPI.begin();
 
-            base.setSPICSPin(addr); // Set the correct CS addr so we're reading from the right thing
-            base.begin(LIS331::USE_SPI); // We're using SPI
+            base.setSPICSPin(addr);
+            base.begin(LIS331::USE_SPI);
 
             base.setFullScale(LIS331::HIGH_RANGE); // +/- 400g range
-            base.setODR(LIS331::DR_1000HZ); // Getting data as frequently as possible will hopefully minimize drift (but might amplify noise)
+            base.setODR(LIS331::DR_1000HZ);
             break;
         case 1: // I2C
-            base.setI2CAddr(addr); // Set the correct add so we're reading from the right thing
-            base.begin(LIS331::USE_I2C); // We're using I2C
+            base.setI2CAddr(addr);
+            base.begin(LIS331::USE_I2C);
 
             base.setFullScale(LIS331::HIGH_RANGE); // +/- 400g range
             base.setODR(LIS331::DR_1000HZ); // Getting data as frequently as possible will hopefully minimize drift (but might amplify noise)
@@ -32,15 +33,34 @@ void Accelerometer::init(int addr) {
     initialized = true;
 }
 
+// Set per-axis offset (additive) and scale (multiplicative) for this accelerometer.
+// Applied as: adjusted = (raw + offset) * scale
+void Accelerometer::setAdjustment(Vector3d offset, Vector3d scale) {
+    _offset = offset;
+    _scale  = scale;
+}
+
 Vector3d Accelerometer::fetch() {
     int16_t x, y, z;
-    base.readAxes(x, y, z); // Read the raw values
-    return Vector3d{ // Convert to g's and return
-            base.convertToG(400, x) * GRAVITY / GRAVITY, // 400 g's is the max range in HIGH_RANGE mode
-            base.convertToG(400, y) * GRAVITY / GRAVITY,
-            base.convertToG(400, z) * GRAVITY / GRAVITY
+    base.readAxes(x, y, z);
+
+    Vector3d raw{
+        base.convertToG(400, x),
+        base.convertToG(400, y),
+        base.convertToG(400, z)
     };
+
+    // Apply per-accelerometer offset then scale
+    Vector3d adjusted{
+        (raw.x() + _offset.x()) * _scale.x(),
+        (raw.y() + _offset.y()) * _scale.y(),
+        (raw.z() + _offset.z()) * _scale.z()
+    };
+
+    return adjusted;
 }
+
+// ─── AccelerometerManager ────────────────────────────────────────────────────
 
 void AccelerometerManager::init(int addr1, int addr2) {
     switch (PROTOCOL) {
@@ -78,9 +98,21 @@ void AccelerometerManager::init(int addr1, int addr2) {
 //     }
 // }
 
-// Return the average of the two accelerometers if both are initialized,
-// otherwise return data from the one that is
-// Raw X, Y, Z of the accelerometers
+// Set per-accelerometer adjustments independently.
+// offset: additive correction per axis  (e.g. bias zeroing)
+// scale:  multiplicative correction per axis (e.g. sensitivity mismatch)
+// Applied as: adjusted = (raw + offset) * scale
+void AccelerometerManager::setAdjustments(
+    Vector3d offset1, Vector3d scale1,
+    Vector3d offset2, Vector3d scale2)
+{
+    accel1.setAdjustment(offset1, scale1);
+    accel2.setAdjustment(offset2, scale2);
+}
+
+// Return the average of both accelerometers if both initialized,
+// otherwise return data from accel1.
+// Raw X, Y, Z
 Vector3d AccelerometerManager::fetchXYZ() {
     if (!accel1.initialized) {
         Serial.println("ERROR: fetchXYZ() called but accelerometer not initialized.");
@@ -96,9 +128,9 @@ Vector3d AccelerometerManager::fetchXYZ() {
     return data;
 }
 
-// Return the average of the two accelerometers if both are initialized,
-// otherwise return data from the one that is
-// Raw normal, tangential, up of the accelerometers
+// Return the average of both accelerometers if both initialized,
+// otherwise return data from accel1.
+// Rotated into Normal, Tangential, Up frame
 Vector3d AccelerometerManager::fetchNTU() {
     if (!accel1.initialized) {
         Serial.println("FATAL: fetchNTU() called but accelerometer not initialized. Halting.");
@@ -110,12 +142,35 @@ Vector3d AccelerometerManager::fetchNTU() {
         data = (accel1.fetch() + accel2.fetch()) / 2.0;
     else
         data = accel1.fetch();
-    //Serial.print("Accelerometer: ");
-    //Serial.print("x: ");
-    Serial.print(data.x());
-    //Serial.print(" y: ");
-    Serial.print(data.y());
-    //Serial.print(" z: ");
-    Serial.println(data.z());
-    return {SQRT_2_OVER_2 * (data.x() + data.z()), data.y(), SQRT_2_OVER_2 * (data.z() - data.x())};
+
+    Serial.print("Accelerometer: ");
+    Serial.print("x: "); Serial.print(data.x());
+    Serial.print(" y: "); Serial.print(data.y());
+    Serial.print(" z: "); Serial.println(data.z());
+
+    return {
+        SQRT_2_OVER_2 * (data.x() + data.z()),
+        data.y(),
+        SQRT_2_OVER_2 * (data.z() - data.x())
+    };
+}
+
+void AccelerometerManager::log(File& logger, uint32_t time) {
+    if (!logger) return;
+
+    Vector3d d1 = accel1.fetch();
+    Vector3d d2;
+    if (accel2.initialized) {
+        d2 = accel2.fetch();
+    } else {
+        d2.setZero();
+    }
+
+    logger.print(time);   logger.print(",");
+    logger.print(d1.x()); logger.print(",");
+    logger.print(d1.y()); logger.print(",");
+    logger.print(d1.z()); logger.print(",");
+    logger.print(d2.x()); logger.print(",");
+    logger.print(d2.y()); logger.print(",");
+    logger.println(d2.z());
 }

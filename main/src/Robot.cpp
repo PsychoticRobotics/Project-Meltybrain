@@ -1,5 +1,7 @@
 #include "Robot.h"
 
+Vector3d lastAccelData;
+
 Robot::Robot(AccelerometerManager& accelerometers, MotorManager& motors) {
     this->accelerometers = &accelerometers;
     this->motors = &motors;
@@ -16,35 +18,48 @@ void Robot::updateTheta(uint32_t dt) {
     double angularVelocity = sqrt(filteredAcceleration / accelerometerRadius);
     theta += angularVelocity * dt;
     theta = fmod(theta, 2 * PI);
+
+    Serial.print("Angular velocity: ");
+    Serial.print(angularVelocity);
+    Serial.println(" rad/s");
+
+    Serial.print("Radius: ");
+    Serial.print(accelerometerRadius);
+    Serial.println(" m");
+
+    Serial.print("Theta: ");
+    Serial.print(theta);
+    Serial.println(" rad");
 }
 
 void Robot::move(float channel1, float channel2, float channel3, uint32_t dt) {
     updateTheta(dt);
     channel1 = map(channel1, 994, 2014, -1, 1);
-    if (channel1 < -1 || channel1 > 1) channel1 = 0;
+    if (channel1 < -1.02 || channel1 > 1.02) channel1 = 0;
     channel2 = map(channel2, 990, 2010, -1, 1);
-    if (channel2 < -1 || channel2 > 1) channel2 = 0;
+    if (channel2 < -1.02 || channel2 > 1.02) channel2 = 0;
     channel3 = map(channel3, 1000, 2014, -1, 1);
     if (channel3 < -0.90) channel3 = -1;
     if (channel3 > 1) channel3 = 1;
 
     float mid = (channel3 + 1) * 50;
-    //Serial.print("mid: ");
-    //Serial.println(mid);
+    Serial.print("mid: ");
+    Serial.println(mid);
     float low = mid - (50 - abs(50 - mid)) * channel1;
-    //Serial.print("low: ");
-    //Serial.println(low);
+    Serial.print("low: ");
+    Serial.println(low);
     float high = mid + (50 - abs(50 - mid)) * channel1;
-    //Serial.print("high: ");
-    //Serial.println(high);
+    Serial.print("high: ");
+    Serial.println(high);
     Serial.print("Theta: ");
     Serial.println(theta);
+
     if (theta > PI) {
         motors->on(map(channel1, -1, 1, high, low),
                    map(channel1, -1, 1, low, high));
-        //Serial.print("Motor 1: ");
+        Serial.print("Motor 1: ");
         Serial.println(map(channel1, -1, 1, high, low));
-        //Serial.print("Motor 2: ");
+        Serial.print("Motor 2: ");
         Serial.println(map(channel1, -1, 1, low, high));
     }
     else {
