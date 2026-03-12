@@ -9,27 +9,25 @@ Robot::Robot(AccelerometerManager& accelerometers, MotorManager& motors) {
 
 void Robot::updateTheta(uint32_t dt) {
     Vector3d accelerometerData = accelerometers->fetchNTU();
+
     double accelerationNormal = accelerometerData.x();
-    //Serial.print("Normal: ");
-    //Serial.println(accelerationNormal);
-    filteredAcceleration = (0.99 * filteredAcceleration) + (0.01 * accelerationNormal);
-    //Serial.print("Filtered: ");
-    //Serial.println(filteredAcceleration);
-    double angularVelocity = sqrt(filteredAcceleration / accelerometerRadius);
-    theta += angularVelocity * dt;
-    theta = fmod(theta, 2 * PI);
+    Serial.print("Normal: ");
+    Serial.println(accelerationNormal);
 
-    Serial.print("Angular velocity: ");
-    Serial.print(angularVelocity);
-    Serial.println(" rad/s");
+    double filteredAcceleration = (0.9 * filteredAcceleration) + (0.01 * accelerationNormal);
+    Serial.print("Filtered: ");
+    Serial.println(filteredAcceleration);
 
-    Serial.print("Radius: ");
-    Serial.print(accelerometerRadius);
-    Serial.println(" m");
+    // double angularVelocity = sqrt(max(filteredAcceleration / accelerometerRadius, 0));
+    // Serial.print("Angular velocity: ");
+    // Serial.println(angularVelocity);
+    // Serial.println(" rad/s");
 
-    Serial.print("Theta: ");
-    Serial.print(theta);
-    Serial.println(" rad");
+    // theta += angularVelocity * dt;
+    // theta = fmod(theta, 2 * PI);
+    // Serial.print("Theta: ");
+    // Serial.print(theta);
+    // Serial.println(" rad");
 }
 
 void Robot::move(float channel1, float channel2, float channel3, uint32_t dt) {
@@ -66,4 +64,5 @@ void Robot::move(float channel1, float channel2, float channel3, uint32_t dt) {
         motors->on(map(channel1, -1, 1, low, high),
                    map(channel1, -1, 1, high, low));
     theta += channel2 * 0.000001 * PI * dt; // Rotates once a microsecond at full channel 2 input
+    }
 }

@@ -81,9 +81,9 @@ void setup() {
 
 
 void loop() {
-    ch1 = receiver.fetch(1);
-    ch2 = receiver.fetch(2);
-    ch3 = receiver.fetch(3);
+    // ch1 = receiver.fetch(1);
+    // ch2 = receiver.fetch(2);
+    // ch3 = receiver.fetch(3);
     // Serial.print("Receiver: ");
     // Serial.print("Ch 1: ");
     // Serial.print(ch1);
@@ -125,11 +125,11 @@ void loop() {
         digitalWrite(RED_LED_PIN, LOW);
         Serial.println("LED OFF");
     }
+
     Serial.print("Current time: ");
     Serial.println(currentTime);
     Serial.print("Time since previous: ");
-    Serial.println((currentTime - previousTime) / 1000000.0);
+    Serial.println((currentTime - previousTime) / 1000000.0, 6);
 
     previousTime = currentTime;
-    delay(20); // Small delay to make serial output readable and prevent buffer overflow
 }

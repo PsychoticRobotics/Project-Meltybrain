@@ -21,6 +21,7 @@ private:
     double filteredTangential = 0.0f;
     double filteredUp = 0.0f;
     double filteredNormalMapped = 0.0f;
+    double filteredAcceleration = 0.0f;
 
     AccelerometerManager *accelerometers;
 

@@ -82,21 +82,21 @@ void AccelerometerManager::init(int addr1, int addr2) {
     }
 }
 
-// void AccelerometerManager::init(int addr) {
-//     switch (PROTOCOL) {
-//         case 0: // SPI
-//             accel1.init(addr);
-//             Serial.println("Accelerometer initialized at addr " + String(addr));
-//             break;
-//         case 1: // I2C
-//             accel1.init((uint8_t) addr);
-//             Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
-//             break;
-//         default:
-//              Serial.println("Error: AccelerometerManager::init (1 arg) - Unknown PROTOCOL");
-//              break;
-//     }
-// }
+void AccelerometerManager::init(int addr) {
+    switch (PROTOCOL) {
+        case 0: // SPI
+            accel1.init(addr);
+            Serial.println("Accelerometer initialized at addr " + String(addr));
+            break;
+        case 1: // I2C
+            accel1.init((uint8_t) addr);
+            Serial.println("Accelerometer initialized at 0x" + String(addr, HEX));
+            break;
+        default:
+             Serial.println("Error: AccelerometerManager::init (1 arg) - Unknown PROTOCOL");
+             break;
+    }
+}
 
 // Set per-accelerometer adjustments independently.
 // offset: additive correction per axis  (e.g. bias zeroing)
