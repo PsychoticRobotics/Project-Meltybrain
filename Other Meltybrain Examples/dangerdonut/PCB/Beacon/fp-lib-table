@@ -1,4 +1,0 @@
-(fp_lib_table
-  (version 7)
-  (lib (name "batteryConnector")(type "KiCad")(uri "${KIPRJMOD}/batteryConnector.pretty")(options "")(descr ""))
-)

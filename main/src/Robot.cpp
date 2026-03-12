@@ -9,25 +9,13 @@ Robot::Robot(AccelerometerManager& accelerometers, MotorManager& motors) {
 
 void Robot::updateTheta(uint32_t dt) {
     Vector3d accelerometerData = accelerometers->fetchNTU();
-    lastAccelData = accelerometerData;
-
-    double accelerationNormal = sqrt(pow(accelerometerData.x(), 2) + pow(accelerometerData.z(), 2));
-    Serial.print("Normal: ");
-    Serial.println(accelerationNormal);
-    filteredNormal = (0.95 * filteredNormal) + (0.05 * accelerationNormal);
-    Serial.print("Filtered: ");
-    Serial.println(filteredNormal);
-    Serial.print("Filtered, mapped: ");
-    Serial.println(filteredNormalMapped);
-
-    // double accelerationTangential = accelerometerData.y();
-    // Serial.print("Normal: ");
-    // Serial.println(accelerationNormal);
-    // filteredTangential = (0.9 * filteredTangential) + (0.1 * accelerationNormal);
-    // Serial.print("Filtered: ");
-    // Serial.println(filteredTangential);
-
-    double angularVelocity = filteredNormalMapped / accelerometerRadius;
+    double accelerationNormal = accelerometerData.x();
+    //Serial.print("Normal: ");
+    //Serial.println(accelerationNormal);
+    filteredAcceleration = (0.99 * filteredAcceleration) + (0.01 * accelerationNormal);
+    //Serial.print("Filtered: ");
+    //Serial.println(filteredAcceleration);
+    double angularVelocity = sqrt(filteredAcceleration / accelerometerRadius);
     theta += angularVelocity * dt;
     theta = fmod(theta, 2 * PI);
 
@@ -77,17 +65,5 @@ void Robot::move(float channel1, float channel2, float channel3, uint32_t dt) {
     else {
         motors->on(map(channel1, -1, 1, low, high),
                    map(channel1, -1, 1, high, low));
-        Serial.print("Motor 1: ");
-        Serial.println(map(channel1, -1, 1, low, high));
-        Serial.print("Motor 2: ");
-        Serial.println(map(channel1, -1, 1, high, low));
-    }
-
-    // ACCELEROMETER ADJUSTMENT START
-
-    filteredNormalMapped = filteredNormal * map(channel2, -1, 1, 0.8, 1.2);
-
-    // ACCELEROMETER ADJUSTMENT END
-
-    // theta += channel2 * 0.000001 * PI * dt; // Rotates once a second at full channel 2 input
+    theta += channel2 * 0.000001 * PI * dt; // Rotates once a microsecond at full channel 2 input
 }

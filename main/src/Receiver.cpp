@@ -63,7 +63,10 @@ void Receiver::init(int pin1, int pin2, int pin3, int pin4) {
 }
 
 float Receiver::fetch(int channel) {
-    assert(initialized);
+    if (!initialized) {
+        Serial.println("ERROR: Receiver::fetch() called before init().");
+        return 0.0f;
+    }
     switch (channel) {
         case 1:
             return pulseIn(pin1, HIGH, 25000);
@@ -74,6 +77,8 @@ float Receiver::fetch(int channel) {
         case 4:
             return pulseIn(pin4, HIGH, 25000);
         default:
-            assert(false && "Invalid channel number");
+            Serial.print("ERROR: Invalid receiver channel requested: ");
+            Serial.println(channel);
+            return 0.0f;
     }
 }

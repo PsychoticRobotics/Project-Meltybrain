@@ -1,3 +1,0 @@
-DShot       KEYWORD1
-setThrottle KEYWORD2
-attach      KEYWORD2
