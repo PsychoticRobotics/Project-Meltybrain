@@ -12,11 +12,16 @@ public:
     void updateTheta(uint32_t dt);  // Updates the robot's orientation (theta) based on accelerometer data
     void move(float channel1, float channel2, float channel3, uint32_t dt);
 
-private:
     double theta = 0.0f; // Robot's orientation angle in radians
+
+private:
     double accelerometerRadius = 0.033; // meters
     double accelerometerInterval = 0.000001; // seconds
-    double filteredAcceleration = 0.0f;
+    double filteredNormal = 0.0f;
+    double filteredTangential = 0.0f;
+    double filteredUp = 0.0f;
+    double filteredNormalMapped = 0.0f;
+
     AccelerometerManager *accelerometers;
 
     MotorManager *motors;
