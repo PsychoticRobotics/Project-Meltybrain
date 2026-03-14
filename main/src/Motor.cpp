@@ -1,20 +1,25 @@
 #include "Motor.h"
+//#include "DShot.h"
 
 void Motor::init(int pin) {
     base.attach(pin);
     base.writeMicroseconds(pwm_base);
+    //base.sendThrottle(0, false);
 }
 
 void Motor::on(float throttle_percent) {
     base.writeMicroseconds(pwm_base + (throttle_percent / 100.0f) * pwm_range);
+    //base.sendThrottle(throttle_percent / 100 * 1999, false);
 }
 
 void Motor::off() {
     base.writeMicroseconds(pwm_base);
+    //base.sendThrottle(0, false);
 }
 
 void Motor::coast() {
     base.writeMicroseconds(pwm_base);
+    //base.sendThrottle(0, false);
 }
 
 void MotorManager::init(int pin1, int pin2) {
