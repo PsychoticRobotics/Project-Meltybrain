@@ -1,4 +1,5 @@
 #include "Accelerometer.h"
+#include "DShot.h"
 #include "Motor.h"
 #include "Receiver.h"
 #include "Robot.h"
@@ -18,12 +19,16 @@
 #include "Config.h"
 #include <Wire.h>
 #include <SD.h>
+//#include <Arduino.h>
 
 
 AccelerometerManager accelerometers;
 MotorManager motors;
 Receiver receiver;
 Robot robot(accelerometers, motors);
+
+//DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
+//DShot motor2(&Serial4, DShotType::DShot600); // Teensy4.X Pin 17
 
 unsigned previousTime = 0;
 unsigned currentTime = 0;
@@ -74,6 +79,12 @@ void setup() {
     motors.init(13, 15);
     delay(1000); // Motors/ESCs need at least 1 second to arm
     Serial.println("...Motors Armed.");
+
+    // for (size_t i = 0; i < 4000; i++) {
+    //     motor1.sendCommand(0, false);
+    //     motor2.sendCommand(0, false);
+    //     delayMicroseconds(1000);
+    // }
 
     Serial.println("--- SETUP COMPLETE, entering main loop ---");
     previousTime = micros();
