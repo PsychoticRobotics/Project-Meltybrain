@@ -24,7 +24,7 @@
 
 AccelerometerManager accelerometers;
 MotorManager motors;
-Receiver receiver;
+CrsfReceiver rc;
 Robot robot(accelerometers, motors);
 
 //DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
@@ -35,9 +35,8 @@ unsigned currentTime = 0;
 unsigned long lastLogTime = 0;
 unsigned long lastFlushTime = 0;
 
-float ch1 = 0;
-float ch2 = 0;
-float ch3 = 0;
+uint16_t channels[CRSF_NUM_CHANNELS];
+CrsfStatus status;
 
 const int GREEN_LED_PIN = 6;
 const int RED_LED_PIN = 8;
@@ -72,7 +71,7 @@ void setup() {
     Serial.println("...Accelerometers Initialized.");
 
     Serial.println("Initializing Receiver...");
-    receiver.init(2, 3, 4, 5);
+    rc.init();
     Serial.println("...Receiver Initialized.");
 
     Serial.println("Initializing Motors & Arming ESCs...");
@@ -92,16 +91,20 @@ void setup() {
 
 
 void loop() {
-    // ch1 = receiver.fetch(1);
-    // ch2 = receiver.fetch(2);
-    // ch3 = receiver.fetch(3);
-    // Serial.print("Receiver: ");
-    // Serial.print("Ch 1: ");
-    // Serial.print(ch1);
-    // Serial.print(" Ch 2: ");
-    // Serial.print(ch2);
-    // Serial.print(" Ch 3: ");
-    // Serial.println(ch3);
+    rc.fetch(channels, &status);
+    if (rc.isLost()) {
+        Serial.println("CRSF signal lost! Halting.");
+        while (1) {
+            robot.move(0, 0, 0, 0);
+        }
+    }
+     Serial.print("Receiver: ");
+     Serial.print("Ch 1: ");
+     Serial.print(channels[0]);
+     Serial.print(" Ch 2: ");
+     Serial.print(channels[1]);
+     Serial.print(" Ch 3: ");
+     Serial.println(channels[2]);
     currentTime = micros();
     robot.move(0, 0, 0, currentTime - previousTime);
 
