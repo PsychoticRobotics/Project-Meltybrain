@@ -3,22 +3,22 @@
 
 void Motor::init(int pin) {
     base.attach(pin);
-    base.writeMicroseconds(pwm_base);
+    base.writeMicroseconds(pwm_base); // Old PWM code
     //base.sendThrottle(0, false);
 }
 
 void Motor::on(float throttle) { // throttle is between 0 and 1, inclusive
-    base.writeMicroseconds(pwm_base + (throttle * pwm_range);
+    base.writeMicroseconds(pwm_base + (throttle * pwm_range); // Old PWM code
     //base.sendThrottle(throttle * 1999, false);
 }
 
 void Motor::off() {
-    base.writeMicroseconds(pwm_base);
+    base.writeMicroseconds(pwm_base); // Old PWM code
     //base.sendThrottle(0, false);
 }
 
 void Motor::coast() {
-    base.writeMicroseconds(pwm_base);
+    base.writeMicroseconds(pwm_base); // Old PWM code
     //base.sendThrottle(0, false);
 }
 
