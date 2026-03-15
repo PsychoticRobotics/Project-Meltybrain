@@ -6,7 +6,7 @@
 class Motor {
 public:
     void init(int pin);
-    void on(float throttle_percent);
+    void on(float throttle);
     void off();
     void coast();
 

@@ -1,4 +1,5 @@
 #include "Robot.h"
+// using namespace std;
 
 Vector3d lastAccelData;
 
@@ -23,46 +24,69 @@ void Robot::updateTheta(uint32_t dt) {
     // Serial.println(angularVelocity);
     // Serial.println(" rad/s");
 
-    // theta += angularVelocity * dt;
-    // theta = fmod(theta, 2 * PI);
+    theta += angularVelocity * dt;
+    theta = fmod(theta, 2*PI);
     // Serial.print("Theta: ");
     // Serial.print(theta);
     // Serial.println(" rad");
 }
 
-void Robot::move(float channel1, float channel2, float channel3, uint32_t dt) {
-    updateTheta(dt);
+// Helper function for the move function
+bool Robot::isWithinHalfTurn(double theta, double direction) {
+    double diff = fmod(direction - theta + 2 * PI, 2 * PI);
+    return diff < PI / 2 || diff >= 3 * PI / 2;
+}
+
+void Robot::move(float channel1, float channel2, float channel3, uint32_t dt)
+{
+    // Maps the received inputs from the transmitter
     channel1 = map(channel1, 994, 2014, -1, 1);
-    if (channel1 < -1.02 || channel1 > 1.02) channel1 = 0;
     channel2 = map(channel2, 990, 2010, -1, 1);
+    channel3 = map(channel3, 1000, 2014, 0, 1);
+
+    // Making sure there aren't any numbers that don't make sense
+    if (channel1 < -1.02 || channel1 > 1.02) channel1 = 0;
     if (channel2 < -1.02 || channel2 > 1.02) channel2 = 0;
-    channel3 = map(channel3, 1000, 2014, -1, 1);
-    if (channel3 < -0.90) channel3 = -1;
+    if (channel3 < 0.05) channel3 = 0;
     if (channel3 > 1) channel3 = 1;
 
-    float mid = (channel3 + 1) * 50;
-    Serial.print("mid: ");
-    Serial.println(mid);
-    float low = mid - (50 - abs(50 - mid)) * channel1;
-    Serial.print("low: ");
-    Serial.println(low);
-    float high = mid + (50 - abs(50 - mid)) * channel1;
-    Serial.print("high: ");
-    Serial.println(high);
+    // Coming up with the vector for where the bot should go
+    float throttle = channel3; // How fast the bot should rotate
+    float direction = atan2(channel1 / channel2);
+    if (direction < 0) direction += 2*PI;
+    float magnitude = sqrt(pow(channel1, 2) + pow(channel2, 2));
+    // If the transmitter sticks is outside the "circle", it is maxed out
+    if (magnitude > 1.0) magnitude = 1.0;
+    updateTheta(dt); // Updates robot's predicted orientation
+
+    // Printing out everything, can be commented out
+    Serial.print("throttle: ");
+    Serial.println(throttle);
+    Serial.print("direction: ");
+    Serial.println(direction);
+    Serial.print("magnitude: ");
+    Serial.println(magnitude);
     Serial.print("Theta: ");
     Serial.println(theta);
 
-    if (theta > PI) {
-        motors->on(map(channel1, -1, 1, high, low),
-                   map(channel1, -1, 1, low, high));
+    // Makes the movement code work
+
+    if (isWithinHalfTurn(theta, direction))
+    {
+        motors->on(throttle - magnitude / 2, throttle + magnitude / 2);
+
         Serial.print("Motor 1: ");
-        Serial.println(map(channel1, -1, 1, high, low));
+        Serial.println(throttle - magnitude / 2);
         Serial.print("Motor 2: ");
-        Serial.println(map(channel1, -1, 1, low, high));
+        Serial.println(throttle + magnitude / 2);
     }
     else {
-        motors->on(map(channel1, -1, 1, low, high),
-                   map(channel1, -1, 1, high, low));
-    theta += channel2 * 0.000001 * PI * dt; // Rotates once a microsecond at full channel 2 input
+        motors->on(throttle + magnitude / 2, throttle - magnitude / 2);
+
+        Serial.print("Motor 1: ");
+        Serial.println(throttle + magnitude / 2);
+        Serial.print("Motor 2: ");
+        Serial.println(throttle - magnitude / 2);
     }
+    //theta += channel2 * 0.000001 * PI * dt; // Rotates once a microsecond at full channel 2 input
 }
