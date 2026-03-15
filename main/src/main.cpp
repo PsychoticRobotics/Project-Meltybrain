@@ -141,7 +141,7 @@ void loop() {
     }
 
     Serial.print("Current time: ");
-    Serial.println(currentTime);
+    Serial.println(currentTime / 1000000.0, 6);
     Serial.print("Time since previous: ");
     Serial.println((currentTime - previousTime) / 1000000.0, 6);
 
