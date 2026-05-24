@@ -11,6 +11,7 @@ public:
 
     void updateTheta(uint32_t dt);  // Updates the robot's orientation (theta) based on accelerometer data
     void move(float channel1, float channel2, float channel3, uint32_t dt);
+    bool isWithinHalfTurn(double theta, double direction);
 
     double theta = 0.0f; // Robot's orientation angle in radians
 

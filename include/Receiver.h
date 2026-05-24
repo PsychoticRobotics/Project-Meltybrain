@@ -94,4 +94,3 @@ private:
     static uint16_t mapChannel(uint16_t raw);
 };
 
-#endif //MAIN_RECEIVER_H

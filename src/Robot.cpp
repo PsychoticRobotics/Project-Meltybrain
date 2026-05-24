@@ -19,10 +19,10 @@ void Robot::updateTheta(uint32_t dt) {
     Serial.print("Filtered: ");
     Serial.println(filteredAcceleration);
 
-    // double angularVelocity = sqrt(max(filteredAcceleration / accelerometerRadius, 0));
-    // Serial.print("Angular velocity: ");
-    // Serial.println(angularVelocity);
-    // Serial.println(" rad/s");
+    double angularVelocity = sqrt(max(filteredAcceleration / accelerometerRadius, 0.0));
+    Serial.print("Angular velocity: ");
+    Serial.println(angularVelocity);
+    Serial.println(" rad/s");
 
     theta += angularVelocity * dt;
     theta = fmod(theta, 2*PI);
@@ -52,7 +52,7 @@ void Robot::move(float channel1, float channel2, float channel3, uint32_t dt)
 
     // Coming up with the vector for where the bot should go
     float throttle = channel3; // How fast the bot should rotate
-    float direction = atan2(channel1 / channel2);
+    float direction = atan2(channel1, channel2);
     if (direction < 0) direction += 2*PI;
     float magnitude = sqrt(pow(channel1, 2) + pow(channel2, 2));
     // If the transmitter sticks is outside the "circle", it is maxed out

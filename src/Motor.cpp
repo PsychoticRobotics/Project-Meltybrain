@@ -8,7 +8,7 @@ void Motor::init(int pin) {
 }
 
 void Motor::on(float throttle) { // throttle is between 0 and 1, inclusive
-    base.writeMicroseconds(pwm_base + (throttle * pwm_range); // Old PWM code
+    base.writeMicroseconds(pwm_base + (throttle * pwm_range)); // Old PWM code
     //base.sendThrottle(throttle * 1999, false);
 }
 
