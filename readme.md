@@ -8,7 +8,7 @@ This repository contains code under the LGPL-2.1 and MIT licenses. This code is 
 
 [Kasari](https://github.com/celeron55/kasari) by celeron55 (Kasari)
 
-[Magnetomelty](https://gitlab.com/team-mind-melt/magnetomelty) by Team Mind Melt (The Greatest Challenge)
+[MagnetoMelty](https://gitlab.com/team-mind-melt/magnetomelty) by Team Mind Melt (The Greatest Challenge)
 
 [Melontype](https://github.com/zenith-parsec/melontype) by zenith-parsec (The Arena Floor)
 
