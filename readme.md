@@ -8,13 +8,15 @@ This repository contains code under the LGPL-2.1 and MIT licenses. This code is 
 
 [Kasari](https://github.com/celeron55/kasari) by celeron55 (Kasari)
 
+[Magnetomelty](https://gitlab.com/team-mind-melt/magnetomelty) by Team Mind Melt (The Greatest Challenge)
+
 [Melontype](https://github.com/zenith-parsec/melontype) by zenith-parsec (The Arena Floor)
 
 [OpenMelt 2](https://github.com/nothinglabs/openmelt2) by nothinglabs (The original open-source meltybrain creator)
 
 [PotatoMelt](https://github.com/skysdottir/potatomelt) by skysdottir (Rotato Potato)
 
-[SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by AlfredoSystems (The Greatest Challenge)
+[SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by Team Mind Melt (The Greatest Challenge)
 
 ## Other Helpful Repositories:
 
@@ -25,5 +27,3 @@ This repository contains code under the LGPL-2.1 and MIT licenses. This code is 
 [SBUS](https://github.com/bolderflight/SBUS) by Bolder Flight Systems
 
 [TeensyShot](https://github.com/jacqu/teensyshot) by jacqu
-
-https://gitlab.com/team-mind-melt/magnetomelty
