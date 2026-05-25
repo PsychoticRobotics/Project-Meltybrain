@@ -1,6 +1,6 @@
 # Meltybrain
 
-This repository contains code under the LGPL-2.1 and MIT licenses. This code is from PotatoMelt and SimpleMelt, respectively.
+This repository contains code under the LGPL-2.1 and MIT licenses. This code is from PotatoMelt and SimpleMelt, respectively. The other liscense is for the Teensyshot code.
 
 ## Other Meltybrain Examples: 
 
