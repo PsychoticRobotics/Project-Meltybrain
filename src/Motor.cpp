@@ -17,10 +17,6 @@ void Motor::off() {
     ESCCMD_throttle(motorIndex, 0);
 }
 
-void Motor::coast() {
-    ESCCMD_throttle(motorIndex, 0);
-}
-
 // --- MotorManager ---
 
 void MotorManager::init() {
@@ -46,12 +42,6 @@ void MotorManager::off(int motor) {
     if (motor == 1)      motor1.off();
     else if (motor == 2) motor2.off();
     else                 { motor1.off(); motor2.off(); }
-}
-
-void MotorManager::coast(int motor) {
-    if (motor == 1)      motor1.coast();
-    else if (motor == 2) motor2.coast();
-    else                 { motor1.coast(); motor2.coast(); }
 }
 
 bool MotorManager::getRPM(int motor, int16_t &rpm) {

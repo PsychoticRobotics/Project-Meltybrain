@@ -8,7 +8,6 @@ public:
     void init(int index);       // 0 = left, 1 = right
     void on(float throttle);    // -1.0 to 1.0
     void off();
-    void coast();
 
 private:
     int motorIndex;
@@ -20,7 +19,6 @@ public:
     void on(float throttle);                            // both motors, -1.0 to 1.0
     void on(float throttle1, float throttle2);          // individual, -1.0 to 1.0
     void off(int motor = 0);                            // 0 = both, 1 = motor1, 2 = motor2
-    void coast(int motor = 0);
 
     bool getRPM(int motor, int16_t &rpm);               // motor 1 or 2
     bool getVoltage(int motor, float &volts);
