@@ -1,35 +1,31 @@
 #ifndef MELTYBRAIN_MOTOR_H
 #define MELTYBRAIN_MOTOR_H
 
-#include <Servo.h>
+#include <stdint.h>
 
 class Motor {
 public:
-    void init(int pin);
-    void on(float throttle);
+    void init(int index);       // 0 = left, 1 = right
+    void on(float throttle);    // -1.0 to 1.0
     void off();
     void coast();
 
 private:
-    Servo base;
-    int pwm_base = 1000;
-    int pwm_range = 1000;
+    int motorIndex;
 };
 
 class MotorManager {
 public:
+    void init();                                        // arm both ESCs
+    void on(float throttle);                            // both motors, -1.0 to 1.0
+    void on(float throttle1, float throttle2);          // individual, -1.0 to 1.0
+    void off(int motor = 0);                            // 0 = both, 1 = motor1, 2 = motor2
+    void coast(int motor = 0);
 
-    //initialize motors
-    void init(int pin1, int pin2);
-
-    //turn motor_X_on
-    void on(float motor_percent);
-    void on(float motor_percent1, float motor_percent2);
-
-    //motors shut-down (robot not translating)
-    void off(int motor = 0); //0 = both, 1 = motor 1, 2 = motor 2
-
-    void coast(int motor = 0); //0 = both, 1 = motor 1, 2 = motor 2
+    bool getRPM(int motor, int16_t &rpm);               // motor 1 or 2
+    bool getVoltage(int motor, float &volts);
+    bool getCurrent(int motor, float &amps);
+    bool getTemp(int motor, uint8_t &degC);
 
 private:
     Motor motor1;

@@ -74,7 +74,7 @@ void setup() {
     Serial.println("...Receiver Initialized.");
 
     Serial.println("Initializing Motors & Arming ESCs...");
-    motors.init(13, 15);
+    motors.init();
     delay(1000); // Motors/ESCs need at least 1 second to arm
     Serial.println("...Motors Armed.");
 
