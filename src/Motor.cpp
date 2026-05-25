@@ -1,5 +1,6 @@
 #include "Motor.h"
 #include "ESCCMD.h"
+#include <Arduino.h>
 
 // --- Motor ---
 
