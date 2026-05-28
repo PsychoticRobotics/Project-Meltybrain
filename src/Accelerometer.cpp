@@ -110,61 +110,34 @@ void AccelerometerManager::setAdjustments(
     accel2.setAdjustment(offset2, scale2);
 }
 
-// Return the average of both accelerometers if both initialized,
-// otherwise return data from accel1.
-// Raw X, Y, Z
-Vector3d AccelerometerManager::fetchXYZ() {
-    if (!accel1.initialized) {
-        Serial.println("ERROR: fetchXYZ() called but accelerometer not initialized.");
-        // Return a zero vector to prevent further issues
-        return Vector3d{0, 0, 0};
-    }
-    Vector3d data;
+// Read sensors once and cache the result. Call at the start of each loop iteration.
+void AccelerometerManager::refresh() {
+    if (!accel1.initialized) return;
     if (accel2.initialized)
-        data = (accel1.fetch() + accel2.fetch()) / 2.0;
+        _cache = (accel1.fetch() + accel2.fetch()) / 2.0;
     else
-        data = accel1.fetch();
-
-    return data;
+        _cache = accel1.fetch();
 }
 
-// Return the average of both accelerometers if both initialized,
-// otherwise return data from accel1.
-// Rotated into Normal, Tangential, Up frame
+// Returns cached raw XYZ data — call refresh() first.
+Vector3d AccelerometerManager::fetchXYZ() {
+    return _cache;
+}
+
+// Returns cached data rotated into Normal, Tangential, Up frame — call refresh() first.
 Vector3d AccelerometerManager::fetchNTU() {
-    if (!accel1.initialized) {
-        Serial.println("FATAL: fetchNTU() called but accelerometer not initialized. Halting.");
-        // This is a fatal error for the robot's logic.
-        while(1);
-    }
-    Vector3d data;
-    if (accel2.initialized)
-        data = (accel1.fetch() + accel2.fetch()) / 2.0;
-    else
-        data = accel1.fetch();
-
-    Serial.print("Accelerometer: ");
-    Serial.print("x: "); Serial.print(data.x());
-    Serial.print(" y: "); Serial.print(data.y());
-    Serial.print(" z: "); Serial.println(data.z());
-
     return {
-        SQRT_2_OVER_2 * (data.x() + data.z()),
-        data.y(),
-        SQRT_2_OVER_2 * (data.z() - data.x())
+        SQRT_2_OVER_2 * (_cache.x() + _cache.z()),
+        _cache.y(),
+        SQRT_2_OVER_2 * (_cache.z() - _cache.x())
     };
 }
 
 void AccelerometerManager::log(File& logger, uint32_t time) {
     if (!logger) return;
 
-    Vector3d d1 = accel1.fetch();
-    Vector3d d2;
-    if (accel2.initialized) {
-        d2 = accel2.fetch();
-    } else {
-        d2.setZero();
-    }
+    Vector3d d1 = _cache;
+    Vector3d d2 = accel2.initialized ? _cache : Vector3d{0, 0, 0};
 
     logger.print(time);   logger.print(",");
     logger.print(d1.x()); logger.print(",");

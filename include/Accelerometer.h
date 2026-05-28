@@ -30,9 +30,13 @@ public:
     void init(int addr);
     void setAdjustments(Vector3d offset1, Vector3d scale1,
                     Vector3d offset2, Vector3d scale2);
-    Vector3d fetchXYZ();
-    Vector3d fetchNTU();
+    void refresh();             // call once per loop — reads sensors and caches
+    Vector3d fetchXYZ();        // returns cached data
+    Vector3d fetchNTU();        // returns cached data rotated into NTU frame
     void log(File& logger, uint32_t time);
+
+private:
+    Vector3d _cache{0, 0, 0};
 };
 
 #endif //MELTYBRAIN_ACCELEROMETER_H

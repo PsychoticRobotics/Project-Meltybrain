@@ -105,6 +105,7 @@ void loop() {
      Serial.print(" Ch 3: ");
      Serial.println(channels[2]);
     currentTime = micros();
+    accelerometers.refresh();   // read sensors once — fetchXYZ/fetchNTU/log all use this
     robot.move(0, 0, 0, currentTime - previousTime);
 
     // Log data at ~200Hz (every 5000 microseconds) to prevent SD card saturation/crashing
