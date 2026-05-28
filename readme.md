@@ -16,6 +16,8 @@ This repository contains code under the LGPL-2.1 and MIT licenses. This code is 
 
 [PotatoMelt](https://github.com/skysdottir/potatomelt) by skysdottir (Rotato Potato)
 
+[rotation_sensing](https://github.com/TGower/rotation_sensing) by TGower (Squirtle)
+
 [SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by Team Mind Melt (The Greatest Challenge)
 
 ## Other Helpful Repositories:
