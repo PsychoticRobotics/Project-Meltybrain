@@ -23,9 +23,6 @@ private:
 
 class AccelerometerManager {
 public:
-    Accelerometer accel1;
-    Accelerometer accel2;
-
     void init(int addr1, int addr2);
     void init(int addr);
     void setAdjustments(Vector3d offset1, Vector3d scale1,
@@ -36,6 +33,8 @@ public:
     void log(File& logger, uint32_t time);
 
 private:
+    Accelerometer accel1;
+    Accelerometer accel2;
     Vector3d _cache{0, 0, 0};
 };
 
