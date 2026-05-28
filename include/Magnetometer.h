@@ -85,6 +85,7 @@ public:
     float getRPM()                const { return _spin.getRPM(); }
     float getAngle(uint32_t t_us) const;      // extrapolated angle in [0, 2π]
     bool  isSpinning()            const { return _spin.isValid(); }
+    bool  isAngleValid()          const { return _spin.isValid() && _phase.isValid(); }
 
 private:
     SFE_MMC5983MA     _mag;

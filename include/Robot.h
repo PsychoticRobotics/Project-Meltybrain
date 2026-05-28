@@ -1,32 +1,24 @@
 #ifndef SENSORFUSION_H
 #define SENSORFUSION_H
 
-#include "Accelerometer.h"
+#include "AngleEstimator.h"
 #include "Motor.h"
 #include <Arduino.h>
 
 class Robot {
 public:
-    Robot(AccelerometerManager& accelerometers, MotorManager& motors);
+    Robot(AngleEstimator& estimator, MotorManager& motors);
 
-    void updateTheta(uint32_t dt);  // Updates the robot's orientation (theta) based on accelerometer data
-    void move(float channel1, float channel2, float channel3, uint32_t dt);
+    void move(float channel1, float channel2, float channel3);
     bool isWithinHalfTurn(double theta, double direction);
 
-    double theta = 0.0f; // Robot's orientation angle in radians
+    double theta = 0.0f;  // robot's orientation angle in radians
 
 private:
-    double accelerometerRadius = 0.033; // meters
-    double accelerometerInterval = 0.000001; // seconds
-    double filteredNormal = 0.0f;
-    double filteredTangential = 0.0f;
-    double filteredUp = 0.0f;
-    double filteredNormalMapped = 0.0f;
-    double filteredAcceleration = 0.0f;
+    void updateTheta();   // reads latest angle from estimator
 
-    AccelerometerManager *accelerometers;
-
-    MotorManager *motors;
+    AngleEstimator* _estimator;
+    MotorManager*   _motors;
 };
 
 #endif

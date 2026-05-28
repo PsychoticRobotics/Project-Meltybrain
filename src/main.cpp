@@ -1,4 +1,6 @@
 #include "Accelerometer.h"
+#include "Magnetometer.h"
+#include "AngleEstimator.h"
 #include "Motor.h"
 #include "Receiver.h"
 #include "Robot.h"
@@ -22,9 +24,11 @@
 
 
 AccelerometerManager accelerometers;
-MotorManager motors;
-CrsfReceiver rc;
-Robot robot(accelerometers, motors);
+MagnetometerTracker  mag;
+AngleEstimator       estimator(accelerometers, mag);
+MotorManager         motors;
+CrsfReceiver         rc;
+Robot                robot(estimator, motors);
 
 //DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
 //DShot motor2(&Serial4, DShotType::DShot600); // Teensy4.X Pin 17
@@ -84,6 +88,13 @@ void setup() {
     //     delayMicroseconds(1000);
     // }
 
+    Serial.println("Initializing Magnetometer...");
+    if (!mag.init()) {
+        Serial.println("WARNING: Magnetometer not found — running on accelerometer only.");
+    } else {
+        Serial.println("...Magnetometer Initialized.");
+    }
+
     Serial.println("--- SETUP COMPLETE, entering main loop ---");
     previousTime = micros();
 }
@@ -105,8 +116,10 @@ void loop() {
      Serial.print(" Ch 3: ");
      Serial.println(channels[2]);
     currentTime = micros();
-    accelerometers.refresh();   // read sensors once — fetchXYZ/fetchNTU/log all use this
-    robot.move(0, 0, 0, currentTime - previousTime);
+    accelerometers.refresh();       // 1. read accelerometer
+    mag.update(currentTime);        // 2. read magnetometer
+    estimator.update(currentTime);  // 3. fuse — must come after both sensors
+    robot.move(0, 0, 0);
 
     // Log data at ~200Hz (every 5000 microseconds) to prevent SD card saturation/crashing
     // if (logger && (currentTime - lastLogTime >= 5000)) {
