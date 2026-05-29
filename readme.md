@@ -2,7 +2,7 @@
 
 ## Liscensing
 
-**GNU LGPL-2.1:** [PotatoMelt](https://github.com/skysdottir/potatomelt). An edited version of PotatoMelt's correction table is featured in Accelerometer.cpp and Accelerometer.h.
+**GNU LGPL-2.1:** An edited version of [PotatoMelt](https://github.com/skysdottir/potatomelt)'s correction table is featured in Accelerometer.cpp and Accelerometer.h.
 
 This repository contains code under the LGPL-2.1 and MIT licenses. This code is from PotatoMelt and SimpleMelt, respectively. The GPL-3.0 license is for the TeensyShot code, specifically.
 
