@@ -137,7 +137,7 @@ Vector3d AccelerometerManager::fetchNTU() {
     return {
         SQRT_2_OVER_2 * (_cache.x() + _cache.z()),  // N — centripetal
         _cache.y(),                                   // T — tangential
-        SQRT_2_OVER_2 * (_cache.z() - _cache.x())   // U — vertical
+        SQRT_2_OVER_2 * (_cache.z() - _cache.x())   // U — UPPPPPPPPPPP
     };
 }
 
