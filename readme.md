@@ -1,6 +1,6 @@
 # Meltybrain
 
-## Liscensing and Credits
+## Licensing and Credits
 
 This repository started off as a fork of [OpenMelt 2](https://github.com/nothinglabs/openmelt2).
 
