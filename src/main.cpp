@@ -4,6 +4,7 @@
 #include "Motor.h"
 #include "Receiver.h"
 #include "Robot.h"
+#include "Telemetry.h"
 #ifdef B1
 #undef B1
 #endif
@@ -29,6 +30,7 @@ AngleEstimator       estimator(accelerometers, mag);
 MotorManager         motors;
 CrsfReceiver         rc;
 Robot                robot(estimator, motors);
+Telemetry            telemetry(estimator, mag, motors);
 
 //DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
 //DShot motor2(&Serial4, DShotType::DShot600); // Teensy4.X Pin 17
@@ -42,7 +44,7 @@ uint16_t channels[CRSF_NUM_CHANNELS];
 CrsfStatus status;
 
 const int GREEN_LED_PIN = 6;
-const int RED_LED_PIN = 8;
+const int RED_LED_PIN = 5;   // was 8 — pin 8 is DShot ch2 output, moved to free pin 5
 
 File logger;
 
@@ -53,6 +55,8 @@ void setup() {
         Serial.print(CrashReport); // Print any previous crash info
     }
     Serial.println("--- SETUP START ---");
+    pinMode(GREEN_LED_PIN, OUTPUT);
+    pinMode(RED_LED_PIN, OUTPUT);
 
     Serial.println("Initializing Accelerometers...");
     switch (PROTOCOL) {
@@ -95,6 +99,10 @@ void setup() {
         Serial.println("...Magnetometer Initialized.");
     }
 
+    Serial.println("Initializing Telemetry link...");
+    telemetry.init();
+    Serial.println("...Telemetry link Initialized.");
+
     Serial.println("--- SETUP COMPLETE, entering main loop ---");
     previousTime = micros();
 }
@@ -105,7 +113,7 @@ void loop() {
     if (rc.isLost()) {
         Serial.println("CRSF signal lost! Halting.");
         while (1) {
-            robot.move(0, 0, 0, 0);
+            robot.move(0, 0, 0);
         }
     }
      Serial.print("Receiver: ");
@@ -120,6 +128,7 @@ void loop() {
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
     robot.move(0, 0, 0);
+    telemetry.update(currentTime, channels, rc.isLost());  // 4. stream to ESP32 (rate-limited)
 
     // Log data at ~200Hz (every 5000 microseconds) to prevent SD card saturation/crashing
     // if (logger && (currentTime - lastLogTime >= 5000)) {
