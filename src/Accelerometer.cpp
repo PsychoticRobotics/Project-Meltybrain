@@ -113,37 +113,48 @@ void AccelerometerManager::setAdjustments(
 // Read sensors once and cache the result. Call at the start of each loop iteration.
 void AccelerometerManager::refresh() {
     if (!accel1.initialized) return;
-    if (accel2.initialized)
-        _cache = (accel1.fetch() + accel2.fetch()) / 2.0;
-    else
-        _cache = accel1.fetch();
+
+    _cache1 = accel1.fetch();
+
+    if (accel2.initialized) {
+        _cache2 = accel2.fetch();
+        _cache  = (_cache1 + _cache2) * 0.5;
+    } else {
+        _cache2 = _cache1;   // mirror so fetchXYZ2 always returns something sensible
+        _cache  = _cache1;
+    }
 }
 
-// Returns cached raw XYZ data — call refresh() first.
+// Returns the averaged (or single-sensor) raw XYZ reading — call refresh() first.
 Vector3d AccelerometerManager::fetchXYZ() {
     return _cache;
 }
 
-// Returns cached data rotated into Normal, Tangential, Up frame — call refresh() first.
+// Returns the averaged reading rotated into the Normal-Tangential-Up frame.
+// N = centripetal (toward spin centre), T = tangential, U = up (out of arena plane).
+// The 45° rotation in the x-z plane compensates for the sensor's physical mounting angle.
 Vector3d AccelerometerManager::fetchNTU() {
     return {
-        SQRT_2_OVER_2 * (_cache.x() + _cache.z()),
-        _cache.y(),
-        SQRT_2_OVER_2 * (_cache.z() - _cache.x())
+        SQRT_2_OVER_2 * (_cache.x() + _cache.z()),  // N — centripetal
+        _cache.y(),                                   // T — tangential
+        SQRT_2_OVER_2 * (_cache.z() - _cache.x())   // U — vertical
     };
 }
+
+// Individual per-sensor raw readings — call refresh() first.
+// Used by AngleEstimator for the differential centre-of-rotation calculation.
+// If only one accelerometer is fitted, both return the same value.
+Vector3d AccelerometerManager::fetchXYZ1() { return _cache1; }
+Vector3d AccelerometerManager::fetchXYZ2() { return _cache2; }
 
 void AccelerometerManager::log(File& logger, uint32_t time) {
     if (!logger) return;
 
-    Vector3d d1 = _cache;
-    Vector3d d2 = accel2.initialized ? _cache : Vector3d{0, 0, 0};
-
-    logger.print(time);   logger.print(",");
-    logger.print(d1.x()); logger.print(",");
-    logger.print(d1.y()); logger.print(",");
-    logger.print(d1.z()); logger.print(",");
-    logger.print(d2.x()); logger.print(",");
-    logger.print(d2.y()); logger.print(",");
-    logger.println(d2.z());
+    logger.print(time);       logger.print(",");
+    logger.print(_cache1.x()); logger.print(",");
+    logger.print(_cache1.y()); logger.print(",");
+    logger.print(_cache1.z()); logger.print(",");
+    logger.print(_cache2.x()); logger.print(",");
+    logger.print(_cache2.y()); logger.print(",");
+    logger.println(_cache2.z());
 }
