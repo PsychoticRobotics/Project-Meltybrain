@@ -20,17 +20,19 @@ void CrsfReceiver::init(uint32_t baud) {
         _channels[i] = RC_MID;
     }
 
-    // Serial1: Pin 0 (RX1), Pin 1 (TX1) on Teensy 4.1
-    // CRSF is standard non-inverted 8N1.
-    Serial1.begin(baud, SERIAL_8N1);
+    // Serial5: Pin 21 (RX5), Pin 20 (TX5) on Teensy 4.1.
+    // Serial1 (pin 0) is occupied by ESC 1 telemetry (ESCCMD index 0) —
+    // using Serial5 here avoids that conflict.
+    // Physical change: move the receiver TX wire from pin 0 → pin 21.
+    Serial5.begin(baud, SERIAL_8N1);
 }
 
 bool CrsfReceiver::fetch(uint16_t channels[CRSF_NUM_CHANNELS], CrsfStatus* status) {
     bool gotRcFrame = false;
 
     // Read all available bytes and try to assemble complete frames.
-    while (Serial1.available()) {
-        uint8_t b = (uint8_t)Serial1.read();
+    while (Serial5.available()) {
+        uint8_t b = (uint8_t)Serial5.read();
 
         // If buffer is empty, only accept a sync byte to start.
         if (_bufLen == 0) {

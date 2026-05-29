@@ -4,9 +4,12 @@
 
 // ─── CRSF Protocol Constants ─────────────────────────────────────────────────
 // RadioMaster RP2 (ExpressLRS) outputs CRSF at 420000 baud, 8N1.
-// Wiring: Receiver TX pad  →  Teensy 4.1 Pin 0  (Serial1 RX)
+// Wiring: Receiver TX pad  →  Teensy 4.1 Pin 21 (Serial5 RX)
 //         Receiver GND     →  Teensy GND
 //         Receiver 5V pad  →  Teensy 5V (or regulated 3.3 V — check your RX)
+//
+// NOTE: Serial1 (pin 0) is reserved for ESC 1 telemetry (ESCCMD index 0).
+//       CRSF uses Serial5 to avoid that conflict.
 
 #define CRSF_NUM_CHANNELS       16      // analog channels in one RC frame
 #define CRSF_RAW_MIN            172     // raw 11-bit minimum
@@ -36,7 +39,7 @@ struct CrsfStatus {
 class CrsfReceiver {
 public:
     /**
-     * Set up Serial1 for CRSF.
+     * Set up Serial5 (pin 21 RX) for CRSF.
      * Call once from setup().
      *
      * @param baud  Override baud rate if needed (default 420000).
@@ -44,7 +47,7 @@ public:
     void init(uint32_t baud = 420000);
 
     /**
-     * Drain Serial1 and decode any complete CRSF frames.
+     * Drain Serial5 and decode any complete CRSF frames.
      * Call every loop() — it is non-blocking.
      *
      * @param channels  Array of exactly CRSF_NUM_CHANNELS uint16_t values.

@@ -5,6 +5,7 @@
 #include "Receiver.h"
 #include "Robot.h"
 #include "Telemetry.h"
+#include "IR.h"
 #ifdef B1
 #undef B1
 #endif
@@ -31,6 +32,8 @@ MotorManager         motors;
 CrsfReceiver         rc;
 Robot                robot(estimator, motors);
 Telemetry            telemetry(estimator, mag, motors);
+IRBeaconTracker      beacons;
+IRSweep              sweep;   // optional — remove if not using active sweep
 
 //DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
 //DShot motor2(&Serial4, DShotType::DShot600); // Teensy4.X Pin 17
@@ -99,6 +102,13 @@ void setup() {
         Serial.println("...Magnetometer Initialized.");
     }
 
+    Serial.println("Initializing IR beacons...");
+    beacons.init();       // attaches interrupts on IR_BEACON_A_PIN and IR_BEACON_B_PIN
+    beacons.calibrate();  // first spin sets each beacon's phase automatically
+    sweep.init();         // sets up 36 kHz PWM emitter and sweep receiver interrupt
+    sweep.enable();       // start emitting — comment out if not using active sweep
+    Serial.println("...IR Initialized.");
+
     Serial.println("Initializing Telemetry link...");
     telemetry.init();
     Serial.println("...Telemetry link Initialized.");
@@ -127,6 +137,21 @@ void loop() {
     accelerometers.refresh();       // 1. read accelerometer
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
+
+    // 4. IR heading correction — runs after the estimator so it has fresh
+    //    angle/omega, and before robot.move() so the robot acts on the
+    //    corrected angle.
+    beacons.update(currentTime, estimator.getAngle(), estimator.getOmega());
+    if (beacons.hasHeadingFix()) {
+        estimator.correctAngle(IR_SNAP_GAIN * beacons.getHeadingError());
+        beacons.clearHeadingFix();
+    }
+    // Keep the sweep beacon filter in sync with the latest measured angles so
+    // confirmed beacon directions are excluded from unknown-target hits.
+    if (beacons.seenA()) sweep.setBeaconAPhase(beacons.getLastAngleA());
+    if (beacons.seenB()) sweep.setBeaconBPhase(beacons.getLastAngleB());
+    sweep.update(currentTime, estimator.getAngle(), estimator.getOmega());
+
     robot.move(0, 0, 0);
     telemetry.update(currentTime, channels, rc.isLost());  // 4. stream to ESP32 (rate-limited)
 
