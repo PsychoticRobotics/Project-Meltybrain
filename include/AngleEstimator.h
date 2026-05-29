@@ -32,6 +32,11 @@ public:
     float getAngle() const { return _angle; }   // radians, [0, 2π]
     float getOmega() const { return _omega; }   // rad/s
 
+    // Apply an external angle correction delta (radians) — for example from an
+    // IR beacon fix.  The result is wrapped back into [0, 2π].
+    // Typical call:  estimator.correctAngle(IR_SNAP_GAIN * beacons.getHeadingError())
+    void  correctAngle(float delta);
+
 private:
     AccelerometerManager* _accel;
     MagnetometerTracker*  _mag;

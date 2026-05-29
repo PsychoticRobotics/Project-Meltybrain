@@ -38,3 +38,12 @@ void AngleEstimator::update(uint32_t t_us) {
     _angle = fmodf(_angle, 2.0f * PI);
     if (_angle < 0.0f) _angle += 2.0f * PI;
 }
+
+void AngleEstimator::correctAngle(float delta) {
+    // Apply an external angle correction (e.g., from an IR beacon fix) and
+    // re-wrap into [0, 2π].  Intentionally separate from update() so the IR
+    // system can be added or removed in main.cpp without touching this class.
+    _angle += delta;
+    _angle = fmodf(_angle, 2.0f * PI);
+    if (_angle < 0.0f) _angle += 2.0f * PI;
+}
