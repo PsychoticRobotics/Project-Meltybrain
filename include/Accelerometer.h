@@ -5,7 +5,6 @@
 #include "../lib/L1S331/LIS331.h"
 #include "AccelCalibration.h"
 #include "Config.h"
-#include <SD.h>
 
 using namespace Eigen;
 
@@ -61,8 +60,6 @@ public:
      * The calibration manager must already be attached (attachCalibration).
      */
     void captureZeroG();
-
-    void log(File& logger, uint32_t time);
 
 private:
     Accelerometer accel1;

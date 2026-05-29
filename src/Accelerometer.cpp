@@ -2,7 +2,6 @@
 #include "Config.h"
 #include <Wire.h>
 #include <SPI.h>
-#include <SD.h>
 
 const double GRAVITY = 9.81;
 const double SQRT_2_OVER_2 = 0.70710678118;
@@ -180,14 +179,3 @@ void AccelerometerManager::captureZeroG() {
     Serial.println("[AccelCal] Zero-G capture complete.");
 }
 
-void AccelerometerManager::log(File& logger, uint32_t time) {
-    if (!logger) return;
-
-    logger.print(time);       logger.print(",");
-    logger.print(_cache1.x()); logger.print(",");
-    logger.print(_cache1.y()); logger.print(",");
-    logger.print(_cache1.z()); logger.print(",");
-    logger.print(_cache2.x()); logger.print(",");
-    logger.print(_cache2.y()); logger.print(",");
-    logger.println(_cache2.z());
-}

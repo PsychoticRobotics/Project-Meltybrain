@@ -22,8 +22,6 @@
 #include "../lib/Eigen/Dense"
 #include "Config.h"
 #include <Wire.h>
-#include <SD.h>
-//#include <Arduino.h>
 
 
 AccelerometerManager     accelerometers;
@@ -42,8 +40,6 @@ IRSweep                  sweep;   // optional — remove if not using active swe
 
 unsigned previousTime = 0;
 unsigned currentTime = 0;
-unsigned long lastLogTime = 0;
-unsigned long lastFlushTime = 0;
 
 // ─── Accelerometer calibration mode ──────────────────────────────────────────
 // How to enter:  hold CH6 (channels[5]) above 1700 µs for 2 seconds while
@@ -185,8 +181,6 @@ CrsfStatus status;
 const int GREEN_LED_PIN = 6;
 const int RED_LED_PIN = 5;   // was 8 — pin 8 is DShot ch2 output, moved to free pin 5
 
-File logger;
-
 void setup() {
     Serial.begin(9600);
     delay(1000);
@@ -324,19 +318,7 @@ void loop() {
     sweep.update(currentTime, estimator.getAngle(), estimator.getOmega());
 
     robot.move(0, 0, 0);
-    telemetry.update(currentTime, channels, rc.isLost());  // 4. stream to ESP32 (rate-limited)
-
-    // Log data at ~200Hz (every 5000 microseconds) to prevent SD card saturation/crashing
-    // if (logger && (currentTime - lastLogTime >= 5000)) {
-    //     accelerometers.log(logger, currentTime);
-    //     lastLogTime = currentTime;
-    // }
-
-    // Flush data to disk every 1 second to ensure data is saved if a crash occurs
-    // if (logger && (currentTime - lastFlushTime >= 1000000)) {
-    //     logger.flush();
-    //     lastFlushTime = currentTime;
-    // }
+    telemetry.update(currentTime, channels, rc.isLost());  // stream to ESP32 (rate-limited)
 
     if (robot.theta < PI/8 || robot.theta > 15*PI/8) {
         digitalWrite(GREEN_LED_PIN, HIGH);
