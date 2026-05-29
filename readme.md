@@ -4,7 +4,7 @@
 
 This repository started off as a fork of [OpenMelt 2](https://github.com/nothinglabs/openmelt2).
 
-**MIT Liscense:** Much of the original code was also taken from [SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt).
+**MIT License:** Much of the original code was also taken from [SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt).
 
 **GNU LGPL-2.1:** An edited version of [PotatoMelt](https://github.com/skysdottir/potatomelt)'s correction table is featured in the accelerometer code.
 
