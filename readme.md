@@ -1,12 +1,16 @@
 # Meltybrain
 
-## Liscensing
+## Liscensing and Credits
 
-**GNU LGPL-2.1:** An edited version of [PotatoMelt](https://github.com/skysdottir/potatomelt)'s correction table is featured in Accelerometer.cpp and Accelerometer.h.
+This repository started off as a fork of [OpenMelt 2](https://github.com/nothinglabs/openmelt2).
 
-This repository contains code under the LGPL-2.1 and MIT licenses. This code is from PotatoMelt and SimpleMelt, respectively. The GPL-3.0 license is for the TeensyShot code, specifically.
+**MIT Liscense:** Much of the original code was also taken from [SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt).
 
-## Other Meltybrain Examples: 
+**GNU LGPL-2.1:** An edited version of [PotatoMelt](https://github.com/skysdottir/potatomelt)'s correction table is featured in the accelerometer code.
+
+**GNU GPL-3.0:** [TeensyShot](https://github.com/jacqu/teensyshot)'s code was used for the implementation of DShot600, seen in the motor and telemetry code.
+
+## Other Meltybrain Examples
 
 [Danger Donut](https://github.com/gavin4d/dangerDonut) by gavin4d (Danger Donut)
 
@@ -22,9 +26,9 @@ This repository contains code under the LGPL-2.1 and MIT licenses. This code is 
 
 [rotation_sensing](https://github.com/TGower/rotation_sensing) by TGower (Squirtle)
 
-[SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt/blob/main/src/SimpleMelt.cpp) by Team Mind Melt (The Greatest Challenge)
+[SimpleMelt](https://github.com/AlfredoSystems/SimpleMelt) by Team Mind Melt (The Greatest Challenge)
 
-## Other Helpful Repositories:
+## Other Helpful Repositories
 
 [AM32](https://github.com/am32-firmware/AM32) by am32-firmware
 
