@@ -6,8 +6,6 @@
 #ifndef MAIN_CONFIG_H
 #define MAIN_CONFIG_H
 
-#define PROTOCOL 1 // 0 = SPI, 1 = I2C
-
 // IR mode:  0 = external beacons (IRBeaconTracker + IRSweep)
 //           1 = beacon-free arena tracking (IRArenaTracker)
 // In arena mode pins 2 and 3 are freed up — no external beacons needed.

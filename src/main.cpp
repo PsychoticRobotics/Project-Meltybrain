@@ -1,4 +1,4 @@
-#include "Config.h"          // must be first — defines IR_MODE, PROTOCOL, etc.
+#include "Config.h"          // must be first — defines IR_MODE, arena constants, etc.
 #include "Autonomy.h"
 #include "Accelerometer.h"
 #include "AccelCalibration.h"
@@ -206,22 +206,9 @@ void setup() {
     Serial.println("...Calibration loaded.");
 
     Serial.println("Initializing Accelerometers...");
-    switch (PROTOCOL) {
-        case 0: // SPI
-            pinMode(MOSI, OUTPUT);
-            pinMode(MISO, INPUT);
-            pinMode(SCK, OUTPUT);
-            accelerometers.init(10); // Initialize accelerometer with CS pin 10
-            break;
-        case 1: // I2C
-            Wire.begin();
-            Wire.setClock(400000); // I2C fast mode
-            accelerometers.init(0x18); // Initialize accelerometers with I2C addresses 0x18, 0x19
-            break;
-        default:
-            Serial.println("FATAL: Invalid protocol specified in Config.h. Halting.");
-            while(1); // Halt execution
-    }
+    Wire.begin();
+    Wire.setClock(400000);   // 400 kHz fast mode
+    accelerometers.init(0x18);   // single sensor; add 0x19 as second arg when second sensor is wired
     Serial.println("...Accelerometers Initialized.");
 
     Serial.println("Initializing Receiver...");
