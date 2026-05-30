@@ -1,3 +1,4 @@
+#include "Config.h"          // must be first — defines IR_MODE, PROTOCOL, etc.
 #include "Accelerometer.h"
 #include "AccelCalibration.h"
 #include "Magnetometer.h"
@@ -7,6 +8,9 @@
 #include "Robot.h"
 #include "Telemetry.h"
 #include "IR.h"
+#if IR_MODE == 1
+#include "IRArena.h"
+#endif
 #ifdef B1
 #undef B1
 #endif
@@ -20,7 +24,6 @@
 #undef max
 #endif
 #include "../lib/Eigen/Dense"
-#include "Config.h"
 #include <Wire.h>
 
 
@@ -32,8 +35,12 @@ MotorManager             motors;
 CrsfReceiver             rc;
 Robot                    robot(estimator, motors);
 Telemetry                telemetry(estimator, mag, motors);
+#if IR_MODE == 0
 IRBeaconTracker          beacons;
-IRSweep                  sweep;   // optional — remove if not using active sweep
+IRSweep                  sweep;
+#else
+IRArenaTracker           arena;
+#endif
 
 //DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
 //DShot motor2(&Serial4, DShotType::DShot600); // Teensy4.X Pin 17
@@ -237,12 +244,20 @@ void setup() {
         Serial.println("...Magnetometer Initialized.");
     }
 
+#if IR_MODE == 0
     Serial.println("Initializing IR beacons...");
     beacons.init();       // attaches interrupts on IR_BEACON_A_PIN and IR_BEACON_B_PIN
     beacons.calibrate();  // first spin sets each beacon's phase automatically
     sweep.init();         // sets up 36 kHz PWM emitter and sweep receiver interrupt
     sweep.enable();       // start emitting — comment out if not using active sweep
-    Serial.println("...IR Initialized.");
+    Serial.println("...IR beacons Initialized.");
+#else
+    Serial.println("Initializing IR arena tracker...");
+    arena.init();
+    arena.setSquareArena(ARENA_SIZE_M);
+    arena.enable();
+    Serial.println("...IR arena tracker Initialized.");
+#endif
 
     Serial.println("Initializing Telemetry link...");
     telemetry.init();
@@ -303,6 +318,7 @@ void loop() {
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
 
+#if IR_MODE == 0
     // 4. IR heading correction — runs after the estimator so it has fresh
     //    angle/omega, and before robot.move() so the robot acts on the
     //    corrected angle.
@@ -316,6 +332,14 @@ void loop() {
     if (beacons.seenA()) sweep.setBeaconAPhase(beacons.getLastAngleA());
     if (beacons.seenB()) sweep.setBeaconBPhase(beacons.getLastAngleB());
     sweep.update(currentTime, estimator.getAngle(), estimator.getOmega());
+#else
+    // 4. IR arena heading + position — wall reflections replace external beacons.
+    arena.update(currentTime, estimator.getAngle(), estimator.getOmega());
+    if (arena.hasHeadingFix()) {
+        estimator.correctAngle(ARENA_SNAP_GAIN * arena.getHeadingError());
+        arena.clearHeadingFix();
+    }
+#endif
 
     robot.move(0, 0, 0);
     telemetry.update(currentTime, channels, rc.isLost());  // stream to ESP32 (rate-limited)
