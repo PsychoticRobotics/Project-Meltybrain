@@ -187,8 +187,8 @@ void handleCalibration(const uint16_t* ch) {
 uint16_t channels[CRSF_NUM_CHANNELS];
 CrsfStatus status;
 
-const int GREEN_LED_PIN = 6;
 const int RED_LED_PIN = 5;   // was 8 — pin 8 is DShot ch2 output, moved to free pin 5
+const int GREEN_LED_PIN = 6;
 
 void setup() {
     Serial.begin(9600);
