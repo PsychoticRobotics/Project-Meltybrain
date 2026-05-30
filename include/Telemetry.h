@@ -41,6 +41,11 @@ public:
     void setPosition(float x, float y);
     void clearPosition();
 
+    // Call each loop when an opponent bearing is available (IR sweep hit).
+    // Stays valid until clearOpponent() is called.
+    void setOpponent(float bearing);
+    void clearOpponent();
+
 private:
     void send(const TelemetryPacket& pkt);                    // frame + write
 
@@ -48,9 +53,11 @@ private:
     MagnetometerTracker* _mag;
     MotorManager*        _motors;
     uint32_t             _lastSend  = 0;
-    float                _posX      = 0.0f;
-    float                _posY      = 0.0f;
-    bool                 _posValid  = false;
+    float                _posX        = 0.0f;
+    float                _posY        = 0.0f;
+    bool                 _posValid    = false;
+    float                _oppBearing  = 0.0f;
+    bool                 _oppValid    = false;
 };
 
 #endif // MELTYBRAIN_TELEMETRY_H

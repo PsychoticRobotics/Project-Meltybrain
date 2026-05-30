@@ -54,6 +54,10 @@ void Telemetry::update(uint32_t t_us, const uint16_t* channels, bool rcLost) {
         pkt.pos_x  = _posX;
         pkt.pos_y  = _posY;
     }
+    if (_oppValid) {
+        pkt.flags       |= TELEM_FLAG_OPP_VALID;
+        pkt.opp_bearing  = _oppBearing;
+    }
 
     send(pkt);
 }
@@ -68,6 +72,16 @@ void Telemetry::clearPosition() {
     _posX     = 0.0f;
     _posY     = 0.0f;
     _posValid = false;
+}
+
+void Telemetry::setOpponent(float bearing) {
+    _oppBearing = bearing;
+    _oppValid   = true;
+}
+
+void Telemetry::clearOpponent() {
+    _oppBearing = 0.0f;
+    _oppValid   = false;
 }
 
 void Telemetry::send(const TelemetryPacket& pkt) {

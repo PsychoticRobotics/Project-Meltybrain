@@ -350,6 +350,12 @@ void loop() {
     } else {
         telemetry.clearPosition();
     }
+    // Feed nearest opponent bearing (first hit from the sweep ring buffer).
+    if (arena.getOpponentHitCount() > 0) {
+        telemetry.setOpponent(arena.getOpponentHitAngle(0));
+    } else {
+        telemetry.clearOpponent();
+    }
 #endif
 
     telemetry.update(currentTime, channels, rc.isLost());  // stream to ESP32 (rate-limited)

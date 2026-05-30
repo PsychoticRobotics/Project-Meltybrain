@@ -46,6 +46,8 @@ struct TelemetryPacket {
     float    pos_x;          // arena position, metres from centre (+X = right)
     float    pos_y;          // arena position, metres from centre (+Y = forward)
                              // only valid when TELEM_FLAG_POS_VALID is set
+    float    opp_bearing;    // bearing (radians, 0–2π) to nearest opponent target
+                             // only valid when TELEM_FLAG_OPP_VALID is set
 };
 #pragma pack(pop)
 
@@ -54,6 +56,7 @@ struct TelemetryPacket {
 #define TELEM_FLAG_MAG_VALID  0x02   // magnetometer angle fix is valid
 #define TELEM_FLAG_SPINNING   0x04   // spin rate estimate is valid
 #define TELEM_FLAG_POS_VALID  0x08   // pos_x / pos_y are valid (IR arena tracker)
+#define TELEM_FLAG_OPP_VALID  0x10   // opp_bearing is valid (opponent detected)
 
 // CRC-8 (poly 0x07, init 0x00). Defined inline so both ends share identical code.
 static inline uint8_t telem_crc8(const uint8_t* data, uint32_t len) {
