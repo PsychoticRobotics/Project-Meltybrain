@@ -44,9 +44,6 @@ IRSweep                  sweep;
 IRArenaTracker           arena;
 #endif
 
-//DShot motor1(&Serial3, DShotType::DShot600); // Teensy4.X Pin 14
-//DShot motor2(&Serial4, DShotType::DShot600); // Teensy4.X Pin 17
-
 unsigned previousTime = 0;
 unsigned currentTime = 0;
 
@@ -219,12 +216,6 @@ void setup() {
     motors.init();
     delay(1000); // Motors/ESCs need at least 1 second to arm
     Serial.println("...Motors Armed.");
-
-    // for (size_t i = 0; i < 4000; i++) {
-    //     motor1.sendCommand(0, false);
-    //     motor2.sendCommand(0, false);
-    //     delayMicroseconds(1000);
-    // }
 
     Serial.println("Initializing Magnetometer...");
     if (!mag.init()) {
