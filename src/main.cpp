@@ -342,6 +342,16 @@ void loop() {
 #endif
 
     robot.move(0, 0, 0);
+
+#if IR_MODE == 1
+    // Feed position into telemetry every loop so the packet is always current.
+    if (arena.hasPosition()) {
+        telemetry.setPosition(arena.getX(), arena.getY());
+    } else {
+        telemetry.clearPosition();
+    }
+#endif
+
     telemetry.update(currentTime, channels, rc.isLost());  // stream to ESP32 (rate-limited)
 
     if (robot.theta < PI/8 || robot.theta > 15*PI/8) {

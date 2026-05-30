@@ -49,8 +49,25 @@ void Telemetry::update(uint32_t t_us, const uint16_t* channels, bool rcLost) {
     if (rcLost)               pkt.flags |= TELEM_FLAG_RC_LOST;
     if (_mag->isAngleValid()) pkt.flags |= TELEM_FLAG_MAG_VALID;
     if (_mag->isSpinning())   pkt.flags |= TELEM_FLAG_SPINNING;
+    if (_posValid) {
+        pkt.flags |= TELEM_FLAG_POS_VALID;
+        pkt.pos_x  = _posX;
+        pkt.pos_y  = _posY;
+    }
 
     send(pkt);
+}
+
+void Telemetry::setPosition(float x, float y) {
+    _posX     = x;
+    _posY     = y;
+    _posValid = true;
+}
+
+void Telemetry::clearPosition() {
+    _posX     = 0.0f;
+    _posY     = 0.0f;
+    _posValid = false;
 }
 
 void Telemetry::send(const TelemetryPacket& pkt) {
