@@ -1,4 +1,5 @@
 #include "Config.h"          // must be first — defines IR_MODE, PROTOCOL, etc.
+#include "Autonomy.h"
 #include "Accelerometer.h"
 #include "AccelCalibration.h"
 #include "Magnetometer.h"
@@ -35,6 +36,7 @@ MotorManager             motors;
 CrsfReceiver             rc;
 Robot                    robot(estimator, motors);
 Telemetry                telemetry(estimator, mag, motors);
+Autonomy                 autonomy;
 #if IR_MODE == 0
 IRBeaconTracker          beacons;
 IRSweep                  sweep;
@@ -341,7 +343,41 @@ void loop() {
     }
 #endif
 
-    robot.move(0, 0, 0);
+    // ── Autonomy dispatch ─────────────────────────────────────────────────────
+    // Gather position + opponent + wall data then hand off to the autonomy
+    // system, which picks the right mode (TANK/MELTY/ASSISTED/AUTO) based on
+    // the RC switch and returns a DriveCommand.
+#if IR_MODE == 1
+    float auto_wall_dist    = arena.getNearestWallDist();
+    float auto_wall_bearing = arena.getNearestWallBearing();
+    bool  auto_opp_valid    = arena.getOpponentHitCount() > 0;
+    float auto_opp_bearing  = auto_opp_valid ? arena.getOpponentHitAngle(0) : 0.0f;
+    float auto_pos_x        = arena.getX();
+    float auto_pos_y        = arena.getY();
+    bool  auto_pos_valid    = arena.hasPosition();
+#else
+    float auto_wall_dist    = 999.0f;
+    float auto_wall_bearing = 0.0f;
+    bool  auto_opp_valid    = false;
+    float auto_opp_bearing  = 0.0f;
+    float auto_pos_x        = 0.0f;
+    float auto_pos_y        = 0.0f;
+    bool  auto_pos_valid    = false;
+#endif
+
+    DriveCommand cmd = autonomy.update(
+        channels,
+        estimator.getOmega(),
+        auto_pos_x, auto_pos_y, auto_pos_valid,
+        auto_opp_bearing, auto_opp_valid,
+        auto_wall_dist, auto_wall_bearing
+    );
+
+    if (cmd.isTank) {
+        motors.on(cmd.left, cmd.right);
+    } else {
+        robot.move(cmd.ch1_us, cmd.ch2_us, cmd.ch3_us);
+    }
 
 #if IR_MODE == 1
     // Feed position into telemetry every loop so the packet is always current.
