@@ -55,6 +55,13 @@ HardwareSerial*     ESCCMD_serial[ESCCMD_NB_UART] = {       // Array of Serial o
                                                 &Serial6 };
 uint8_t             ESCCMD_bufferTlm[ESCCMD_NB_UART][ESCCMD_TLM_LENGTH];
 
+// HardwareSerial::clear() was removed in newer Teensyduino cores.
+// This helper drains the RX FIFO by reading until empty, which is equivalent.
+static void ESCCMD_flush_rx( uint8_t i ) {
+  while ( ESCCMD_serial[i]->available( ) )
+    ESCCMD_serial[i]->read( );
+}
+
 #ifdef ESCCMD_ESC_EMULATION
 #define             ESCCMD_EMU_TLM_MAX      5               // Max number of telemetry packets
 #define             ESCCMD_EMU_TLM_DEG      25              // Nominal temperature (deg)
@@ -235,7 +242,7 @@ int ESCCMD_3D_on( void )  {
   // Flush incoming serial buffers due to a transcient voltage
   // appearing on Tx when saving, generating a 0xff serial byte
   for ( i = 0; i < ESCCMD_n; i++ )
-    ESCCMD_serial[i]->clear( );
+    ESCCMD_flush_rx( i );
 
   // ESC is disarmed after previous delay
   for ( i = 0; i < ESCCMD_n; i++ )
@@ -327,7 +334,7 @@ int ESCCMD_3D_off( void )  {
   // Flush incoming serial buffers due to a transcient voltage
   // appearing on Tx when saving, generating a 0xff serial byte
   for ( i = 0; i < ESCCMD_n; i++ )
-    ESCCMD_serial[i]->clear( );
+    ESCCMD_flush_rx( i );
 
   // ESC is disarmed after previous delay
   for ( i = 0; i < ESCCMD_n; i++ )
@@ -372,7 +379,7 @@ int ESCCMD_start_timer( void )  {
     ESCCMD_CRC_errors[i] = 0;
     ESCCMD_last_error[i]  = 0;
     ESCCMD_throttle_wd[i] = ESCCMD_THWD_LEVEL;
-    ESCCMD_serial[i]->clear( );
+    ESCCMD_flush_rx( i );
   }
 
   ESCCMD_tic_pend = 0;
@@ -482,7 +489,7 @@ int ESCCMD_throttle( uint8_t i, int16_t throttle ) {
     // If watchdog was previously triggered:
     //  Clear UART input buffer
     //  Also clear pending errors, pending packets...
-    ESCCMD_serial[i]->clear( );
+    ESCCMD_flush_rx( i );
     ESCCMD_tlm_pend[i] = 0;
     ESCCMD_tlm_lost_cnt[i] = 0;
     ESCCMD_CRC_errors[i] = 0;
@@ -909,7 +916,7 @@ int ESCCMD_extract_packet_data( uint8_t i )  {
     // Flush UART incoming buffer
     // If ESC is transmitting, need to wait for some byte(s) to come in
     do {
-      ESCCMD_serial[i]->clear( );
+      ESCCMD_flush_rx( i );
       delayMicroseconds( ESCCMD_TLM_BYTE_TIME * 2 );
     } while ( ESCCMD_serial[i]->available( ) );
     
