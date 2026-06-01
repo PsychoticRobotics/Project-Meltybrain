@@ -6,17 +6,15 @@
 // This section is the only place that touches the TMF8801 hardware. Swap out
 // just this section if you change libraries or sensor family.
 //
-// Library: SparkFun TMF882X (PlatformIO: sparkfun/SparkFun TMF882X Arduino Library)
-// For the TMF8801 specifically, the ams-OSRAM arduino-tof driver is a closer
-// match — update the includes and calls below if you use that instead.
+// Library: ams-OSRAM arduino-tof (https://github.com/ams-OSRAM/arduino-tof)
+// PlatformIO lib_deps: https://github.com/ams-OSRAM/arduino-tof.git
 
-#include <SparkFun_TMF882X_Library.h>
+#include <tmf8801.h>
 
-static SparkFun_TMF882X _tof;
-static tmf882x_msg_meas_results _lastResult;
+static TMF8801 _tof;
 
 static bool _sensorInit() {
-    if (!_tof.begin()) return false;
+    if (!_tof.begin(Wire, TOF_I2C_ADDR)) return false;
     _tof.startMeasuring();
     return true;
 }
@@ -24,11 +22,10 @@ static bool _sensorInit() {
 // Returns true and fills dist_m + confidence if a fresh reading is available.
 // dist_m is in metres; confidence is 0–255.
 static bool _sensorRead(float* dist_m, uint8_t* confidence) {
-    if (!_tof.isMeasurementReady()) return false;
-    if (!_tof.getMeasurementResult(&_lastResult)) return false;
-    // TMF882X reports distance in mm for each zone; zone 0 for single-zone use.
-    *dist_m     = _lastResult.results[0].distance_mm * 0.001f;
-    *confidence = (uint8_t)_lastResult.results[0].confidence;
+    if (!_tof.dataAvailable()) return false;
+    TMF8801Result result = _tof.getResult();
+    *dist_m     = result.distance_mm * 0.001f;
+    *confidence = result.confidence;
     return true;
 }
 
