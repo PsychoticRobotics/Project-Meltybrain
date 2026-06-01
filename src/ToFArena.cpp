@@ -6,27 +6,29 @@
 // This section is the only place that touches the TMF8801 hardware. Swap out
 // just this section if you change libraries or sensor family.
 //
-// Library: ams-OSRAM arduino-tof (https://github.com/ams-OSRAM/arduino-tof)
-// PlatformIO lib_deps: https://github.com/ams-OSRAM/arduino-tof.git
-
-#include <tmf8801.h>
-
-static TMF8801 _tof;
+// ── TODO: fill in with your chosen TMF8801 library ───────────────────────────
+//
+// When you have the hardware, install the library and replace the three
+// functions below (_sensorInit, _sensorRead, and any globals) with real calls.
+//
+// ams-OSRAM maintain an Arduino driver here:
+//   https://github.com/ams-OSRAM-Group/tmf8x0x-arduino-driver
+//
+// The rest of this file (polar map, EMA, opponent detection) does not change.
+// ─────────────────────────────────────────────────────────────────────────────
 
 static bool _sensorInit() {
-    if (!_tof.begin(Wire, TOF_I2C_ADDR)) return false;
-    _tof.startMeasuring();
-    return true;
+    // TODO: initialise TMF8801 over I2C and start free-running measurements.
+    // Return true on success, false if sensor not found.
+    return false;
 }
 
 // Returns true and fills dist_m + confidence if a fresh reading is available.
 // dist_m is in metres; confidence is 0–255.
 static bool _sensorRead(float* dist_m, uint8_t* confidence) {
-    if (!_tof.dataAvailable()) return false;
-    TMF8801Result result = _tof.getResult();
-    *dist_m     = result.distance_mm * 0.001f;
-    *confidence = result.confidence;
-    return true;
+    // TODO: check if a new measurement is ready and fill dist_m / confidence.
+    (void)dist_m; (void)confidence;
+    return false;
 }
 
 // ─── ToFArenaMapper ───────────────────────────────────────────────────────────
