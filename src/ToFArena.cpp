@@ -1,33 +1,76 @@
 #include "ToFArena.h"
-#include <Wire.h>
 
-// ─── Sensor driver ────────────────────────────────────────────────────────────
+// ─── Sensor driver: Benewake TFMini-S on Serial2 ──────────────────────────────
 //
-// This section is the only place that touches the TMF8801 hardware. Swap out
-// just this section if you change libraries or sensor family.
+// The TFMini-S streams 9-byte frames continuously:
+//   [0] 0x59         header byte 1
+//   [1] 0x59         header byte 2
+//   [2] dist_low     distance in cm, low byte
+//   [3] dist_high    distance in cm, high byte
+//   [4] strength_low signal strength, low byte
+//   [5] strength_high signal strength, high byte
+//   [6] temp_low     temperature, low byte  (unused here)
+//   [7] temp_high    temperature, high byte (unused here)
+//   [8] checksum     sum of bytes [0..7] truncated to 8 bits
 //
-// ── TODO: fill in with your chosen TMF8801 library ───────────────────────────
-//
-// When you have the hardware, install the library and replace the three
-// functions below (_sensorInit, _sensorRead, and any globals) with real calls.
-//
-// ams-OSRAM maintain an Arduino driver here:
-//   https://github.com/ams-OSRAM-Group/tmf8x0x-arduino-driver
-//
-// The rest of this file (polar map, EMA, opponent detection) does not change.
-// ─────────────────────────────────────────────────────────────────────────────
+// Frames arrive back-to-back over UART. The parser below buffers bytes as they
+// arrive and emits a reading whenever it has a complete frame with a valid
+// checksum. Non-blocking — returns immediately if no complete frame is ready.
+
+static constexpr uint8_t TFMINI_FRAME_SIZE = 9;
+static constexpr uint8_t TFMINI_HEADER     = 0x59;
+
+static uint8_t _rxBuf[TFMINI_FRAME_SIZE];
+static uint8_t _rxIdx = 0;
 
 static bool _sensorInit() {
-    // TODO: initialise TMF8801 over I2C and start free-running measurements.
-    // Return true on success, false if sensor not found.
-    return false;
+    Serial2.begin(TFMINI_BAUD);
+    // TFMini-S has no init handshake — it begins streaming as soon as power and
+    // UART are up. We always return true; use validBinCount() after a few
+    // revolutions to confirm data is actually arriving.
+    return true;
 }
 
-// Returns true and fills dist_m + confidence if a fresh reading is available.
-// dist_m is in metres; confidence is 0–255.
-static bool _sensorRead(float* dist_m, uint8_t* confidence) {
-    // TODO: check if a new measurement is ready and fill dist_m / confidence.
-    (void)dist_m; (void)confidence;
+// Returns true and fills dist_m + strength once per complete valid frame.
+// dist_m is in metres; strength is 0–65535 (Benewake's 16-bit signal quality).
+static bool _sensorRead(float* dist_m, uint16_t* strength) {
+    while (Serial2.available()) {
+        uint8_t b = (uint8_t)Serial2.read();
+
+        // ── Resync on the two-byte header ─────────────────────────────────────
+        if (_rxIdx == 0) {
+            if (b == TFMINI_HEADER) _rxBuf[_rxIdx++] = b;
+            continue;
+        }
+        if (_rxIdx == 1) {
+            if (b == TFMINI_HEADER) {
+                _rxBuf[_rxIdx++] = b;
+            } else {
+                _rxIdx = 0;   // false start — drop and resync
+            }
+            continue;
+        }
+
+        // ── Accumulate payload + checksum ─────────────────────────────────────
+        _rxBuf[_rxIdx++] = b;
+
+        if (_rxIdx == TFMINI_FRAME_SIZE) {
+            uint8_t sum = 0;
+            for (int i = 0; i < TFMINI_FRAME_SIZE - 1; i++) sum += _rxBuf[i];
+            uint8_t expected = _rxBuf[TFMINI_FRAME_SIZE - 1];
+
+            _rxIdx = 0;   // ready for the next frame regardless of CRC outcome
+
+            if (sum == expected) {
+                uint16_t dist_cm = (uint16_t)_rxBuf[2] | ((uint16_t)_rxBuf[3] << 8);
+                uint16_t str     = (uint16_t)_rxBuf[4] | ((uint16_t)_rxBuf[5] << 8);
+                *dist_m   = dist_cm * 0.01f;
+                *strength = str;
+                return true;
+            }
+            // bad checksum — fall through and keep reading
+        }
+    }
     return false;
 }
 
@@ -35,25 +78,56 @@ static bool _sensorRead(float* dist_m, uint8_t* confidence) {
 
 bool ToFArenaMapper::init() {
     _sensorReady = _sensorInit();
-    if (!_sensorReady) {
-        Serial.println("[ToF] Sensor not found — check wiring and I2C address.");
-    } else {
-        Serial.println("[ToF] TMF8801 initialised.");
-    }
+    Serial.println("[ToF] TFMini-S UART initialised on Serial2 @ "
+                   + String(TFMINI_BAUD) + " baud.");
     return _sensorReady;
+}
+
+// ─── One-time configuration ──────────────────────────────────────────────────
+// Sends the TFMini-S "set frame rate = 1000 Hz" command followed by the
+// "save settings" command, persisting the change to the sensor's flash.
+// Call once with the sensor connected, then re-comment the call in setup().
+// See the header for protocol details.
+
+void ToFArenaMapper::configure1000Hz() {
+    if (!_sensorReady) {
+        Serial.println("[ToF] configure1000Hz: sensor not initialised, abort.");
+        return;
+    }
+
+    Serial.println("[ToF] Configuring TFMini-S for 1000 Hz output...");
+
+    // Set frame rate = 1000 Hz (0x03E8 little-endian)
+    static const uint8_t cmd_rate[]  = { 0x5A, 0x06, 0x03, 0xE8, 0x03, 0x48 };
+    // Save settings to sensor flash
+    static const uint8_t cmd_save[]  = { 0x5A, 0x04, 0x11, 0x6F };
+
+    Serial2.write(cmd_rate, sizeof(cmd_rate));
+    Serial2.flush();
+    delay(100);
+
+    Serial2.write(cmd_save, sizeof(cmd_save));
+    Serial2.flush();
+    delay(100);
+
+    // Drain any acknowledgement bytes so they don't trip up the frame parser.
+    while (Serial2.available()) Serial2.read();
+    _rxIdx = 0;
+
+    Serial.println("[ToF] TFMini-S now configured to 1000 Hz, saved to flash.");
 }
 
 void ToFArenaMapper::update(float angle_rad, float omega_rad_s) {
     if (!_sensorReady) return;
 
-    float dist_m;
-    uint8_t conf;
-    if (!_readSensor(&dist_m, &conf)) return;   // no fresh reading this loop
+    float    dist_m;
+    uint16_t strength;
+    if (!_readSensor(&dist_m, &strength)) return;   // no fresh frame this loop
 
     // ── Reject obviously bad readings ─────────────────────────────────────────
-    if (conf < TOF_MIN_CONF)       return;
-    if (dist_m < TOF_MIN_RANGE_M)  return;
-    if (dist_m > TOF_MAX_RANGE_M)  return;
+    if (strength < TOF_MIN_STRENGTH) return;
+    if (dist_m   < TOF_MIN_RANGE_M)  return;
+    if (dist_m   > TOF_MAX_RANGE_M)  return;
 
     // ── Pipeline delay compensation ───────────────────────────────────────────
     // The sensor triggered this measurement ~TOF_PIPELINE_MS ago.
@@ -95,8 +169,8 @@ void ToFArenaMapper::_addReading(float angle_rad, float dist_m) {
     }
 }
 
-bool ToFArenaMapper::_readSensor(float* dist_m, uint8_t* confidence) {
-    return _sensorRead(dist_m, confidence);
+bool ToFArenaMapper::_readSensor(float* dist_m, uint16_t* strength) {
+    return _sensorRead(dist_m, strength);
 }
 
 // ─── Queries ─────────────────────────────────────────────────────────────────

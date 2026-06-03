@@ -51,57 +51,60 @@ uint8_t             DSHOT_n;
 #if defined(__IMXRT1062__) // teensy 4.0
 
 // DMA eFlexPWM modules
-volatile IMXRT_FLEXPWM_t  *DSHOT_mods[DSHOT_NB_DMA_CHAN]  = { &IMXRT_FLEXPWM2, 
-                                                              &IMXRT_FLEXPWM1,  
-                                                              &IMXRT_FLEXPWM1,  
-                                                              &IMXRT_FLEXPWM4,  
-                                                              &IMXRT_FLEXPWM4, 
-                                                              &IMXRT_FLEXPWM2
+// NOTE: index 1 (ESC 1) was originally on pin 8 / FLEXPWM1; swapped with index 5
+// to use pin 9 / FLEXPWM2 instead, freeing pin 8 for Serial2 TX.
+// Old pin 8 settings are preserved at index 5 if you ever want to revert.
+volatile IMXRT_FLEXPWM_t  *DSHOT_mods[DSHOT_NB_DMA_CHAN]  = { &IMXRT_FLEXPWM2,
+                                                              &IMXRT_FLEXPWM2,   // was FLEXPWM1 — moved to pin 9
+                                                              &IMXRT_FLEXPWM1,
+                                                              &IMXRT_FLEXPWM4,
+                                                              &IMXRT_FLEXPWM4,
+                                                              &IMXRT_FLEXPWM1    // was FLEXPWM2 — old pin 8 entry
                                                             };
 
 // DMA eFlexPWM submodules
-volatile uint8_t          DSHOT_sm[DSHOT_NB_DMA_CHAN]     = { 0, 
-                                                              3, 
-                                                              2, 
-                                                              0, 
-                                                              1, 
-                                                              2
+volatile uint8_t          DSHOT_sm[DSHOT_NB_DMA_CHAN]     = { 0,
+                                                              2,   // was 3 — pin 9 uses submodule 2
+                                                              2,
+                                                              0,
+                                                              1,
+                                                              3    // was 2 — old pin 8 entry
                                                             };
 
 // DMA eFlexPWM submodule PWM channel selector: A=0, B=1, X=2
-volatile uint8_t  	      DSHOT_abx[DSHOT_NB_DMA_CHAN]    = { 0, 
-                                                              0, 
-                                                              2, 
-                                                              0, 
-                                                              0, 
-                                                              1
+volatile uint8_t  	      DSHOT_abx[DSHOT_NB_DMA_CHAN]    = { 0,
+                                                              1,   // was 0 — pin 9 uses channel B
+                                                              2,
+                                                              0,
+                                                              0,
+                                                              0    // was 1 — old pin 8 entry
                                                             };
 
 // Output pins
-volatile uint8_t          DSHOT_pin[DSHOT_NB_DMA_CHAN]    = { 4, 
-                                                              8, 
-                                                              24, 
-                                                              22, 
-                                                              23, 
-                                                              9
+volatile uint8_t          DSHOT_pin[DSHOT_NB_DMA_CHAN]    = { 4,
+                                                              9,   // was 8 — moved to free Serial2 TX
+                                                              24,
+                                                              22,
+                                                              23,
+                                                              8    // was 9 — old pin 8 preserved here
                                                             };
 
 // Output pin ALT mux
-volatile uint8_t          DSHOT_pinmux[DSHOT_NB_DMA_CHAN] = { 1, 
-                                                              6, 
-                                                              4, 
-                                                              1, 
-                                                              1, 
-                                                              2
+volatile uint8_t          DSHOT_pinmux[DSHOT_NB_DMA_CHAN] = { 1,
+                                                              2,   // was 6 — ALT mux for pin 9 / FLEXPWM2 SM2 B
+                                                              4,
+                                                              1,
+                                                              1,
+                                                              6    // was 2 — old pin 8 ALT mux
                                                             };
 
 // DMA source
 volatile uint8_t          DSHOT_dmamux[DSHOT_NB_DMA_CHAN] = { DMAMUX_SOURCE_FLEXPWM2_WRITE0,
-                                                              DMAMUX_SOURCE_FLEXPWM1_WRITE3,
+                                                              DMAMUX_SOURCE_FLEXPWM2_WRITE2,   // was FLEXPWM1_WRITE3
                                                               DMAMUX_SOURCE_FLEXPWM1_WRITE2,
                                                               DMAMUX_SOURCE_FLEXPWM4_WRITE0,
                                                               DMAMUX_SOURCE_FLEXPWM4_WRITE1,
-                                                              DMAMUX_SOURCE_FLEXPWM2_WRITE2
+                                                              DMAMUX_SOURCE_FLEXPWM1_WRITE3    // was FLEXPWM2_WRITE2
                                                             };
 
 #else // teensy 3.5
