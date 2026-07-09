@@ -26,52 +26,60 @@ void AngleEstimator::update(uint32_t t_us) {
     if (_accel->isDual()) {
         // ── Two-sensor differential formula ──────────────────────────────────
         //
-        // Both accelerometers lie on the body y-axis (the axis connecting them):
-        //   accel1 sits at position +_y1 from the robot's geometric centre
-        //   accel2 sits at position −_y2 from the robot's geometric centre
+        // Physical layout:
+        //   Both sensors have identical orientation: x = right, y = forward, z = up.
+        //   They sit on the left-right axis of the robot, 22.6 mm chip-to-chip.
+        //   The midpoint is the geometric centre.
+        //     accel1 (0x18): one side,  _y1 = 11.3 mm from centre
+        //     accel2 (0x19): other side, _y2 = 11.3 mm from centre
+        //   (verify in hardware which address is left vs right)
         //
-        // The spinning centre is offset (Cx, Cy) from the geometric centre.
-        // The centripetal acceleration at each sensor has a component along the
-        // separation (y) axis equal to:
+        // The separation axis is sensor-x (left-right).  Centripetal acceleration
+        // at each sensor has a component along that axis proportional to distance
+        // from the spin centre (Cx) in that direction:
         //
-        //   ay1 = ω² × (Cy − _y1)   ← negative if Cy < y1 (top sensor)
-        //   ay2 = ω² × (Cy + _y2)   ← positive (bottom sensor, further from centre)
+        //   ax1 = −ω² × (Cx − _y1)   (sign depends on which side is accel1)
+        //   ax2 = −ω² × (Cx + _y2)
         //
-        // Subtracting eliminates Cy:
-        //   ay2 − ay1 = ω² × (_y1 + _y2)   →   ω² = (ay2 − ay1) / (_y1 + _y2)
+        // Subtracting eliminates Cx:
+        //   ax1 − ax2 = ω² × (_y1 + _y2)   →   ω² = (ax1 − ax2) / (_y1 + _y2)
         //
-        // AXIS ASSUMPTION:  fetch().y() maps to the separation axis,
-        //                   fetch().x() maps to the perpendicular in-plane axis.
-        // If your physical sensor mounting uses different axes, swap .y() / .x() here.
+        // If ω² comes out negative, the sign convention is flipped (accel1 is on
+        // the opposite side from assumed); swap ax1/ax2 or negate _y1/_y2.
+        //
+        // The perpendicular in-plane axis is sensor-y (forward/back).
+        // Its average across both sensors gives the tangential / forward acceleration.
 
         Vec3d raw1 = _accel->fetchXYZ1();   // must call accelerometers.refresh() first
         Vec3d raw2 = _accel->fetchXYZ2();
 
-        float ay1 = (float)raw1.y();
-        float ay2 = (float)raw2.y();
-        float ax  = (float)(raw1.x() + raw2.x()) * 0.5f;   // average; should be equal
+        // Separation axis (left-right = sensor x):
+        float ax1 = (float)raw1.x();
+        float ax2 = (float)raw2.x();
+        // Perpendicular in-plane axis (forward = sensor y); should be equal for both:
+        float ay  = (float)(raw1.y() + raw2.y()) * 0.5f;
 
-        float omegaSq = (ay2 - ay1) / (_y1 + _y2);
+        float omegaSq = (ax1 - ax2) / (_y1 + _y2);
 
         if (omegaSq > 0.0f) {
             // Gentle low-pass on ω to smooth sensor noise.
             float omegaRaw = sqrtf(omegaSq);
             _omega = 0.8f * _omega + 0.2f * omegaRaw;
 
-            // Spinning-centre geometry (recomputed every loop — Cy shifts with thrust).
+            // Spinning-centre geometry (recomputed every loop — Cx shifts with thrust).
             float w2 = _omega * _omega;
-            _cx = ax  / w2;                      // x-offset: static imbalance
-            _cy = ay1 / w2 + _y1;                // y-offset: moves with motor power
+            _cx = ay  / w2;                      // offset along forward axis: static imbalance
+            _cy = ax1 / w2 + _y1;               // offset along separation axis: moves with thrust
             _r1 = sqrtf(_cx*_cx + (_y1 - _cy)*(_y1 - _cy));
             _r2 = sqrtf(_cx*_cx + (_y2 + _cy)*(_y2 + _cy));
         }
-        // omegaSq ≤ 0 → robot is not yet spinning; hold the previous _omega,
-        // _cx, _cy, _r1, _r2 until a valid reading arrives.
+        // omegaSq ≤ 0 → robot is not yet spinning (or sign convention is flipped);
+        // hold the previous _omega, _cx, _cy, _r1, _r2 until a valid reading arrives.
 
     } else {
         // ── Single-sensor fallback ────────────────────────────────────────────
         // Use the NTU normal component (centripetal direction) and treat _y1 as
-        // the fixed spin radius.  This matches the original behaviour.
+        // the fixed spin radius (11.3 mm from centre to sensor chip).
         float normalAccel = (float)_accel->fetchNTU().x();
         _filteredAccel    = 0.9f * _filteredAccel + 0.1f * normalAccel;
         _omega = sqrtf(fmaxf(_filteredAccel / _y1, 0.0f));

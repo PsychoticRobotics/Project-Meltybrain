@@ -21,13 +21,17 @@ void Accelerometer::setAdjustment(Vec3d offset, Vec3d scale) {
 }
 
 Vec3d Accelerometer::fetch() {
+    // Physical axis convention (both sensors mounted identically):
+    //   x → right  (positive = toward the right side of the robot)
+    //   y → forward (positive = toward the front of the robot)
+    //   z → up     (positive = away from the arena floor)
     int16_t x, y, z;
     base.readAxes(x, y, z);
 
     Vec3d raw{
-        base.convertToG(400, x),
-        base.convertToG(400, y),
-        base.convertToG(400, z)
+        base.convertToG(400, x),  // right
+        base.convertToG(400, y),  // forward
+        base.convertToG(400, z)   // up
     };
 
     // Apply per-accelerometer offset then scale
@@ -93,11 +97,17 @@ Vec3d AccelerometerManager::fetchXYZ() {
 
 // Returns the averaged reading rotated into the Normal-Tangential-Up frame.
 // N = centripetal (toward spin centre), T = tangential, U = up (out of arena plane).
-// The 45° rotation in the x-z plane compensates for the sensor's physical mounting angle.
+//
+// Sensor axes (both sensors identical): x = right, y = forward, z = up.
+// The sensors sit on the left-right axis of the robot, so at any instant the
+// centripetal component is primarily along sensor x and the tangential component
+// is primarily along sensor y.  The 45° mix of x and z below was carried over
+// from an earlier single-sensor mounting — verify against your physical install
+// and update if the sensor is no longer tilted 45° in the x-z plane.
 Vec3d AccelerometerManager::fetchNTU() {
     return {
-        SQRT_2_OVER_2 * (_cache.x() + _cache.z()),  // N — centripetal
-        _cache.y(),                                   // T — tangential
+        SQRT_2_OVER_2 * (_cache.x() + _cache.z()),  // N — centripetal (45° mix of right+up)
+        _cache.y(),                                   // T — tangential (forward)
         SQRT_2_OVER_2 * (_cache.z() - _cache.x())   // U — vertical (out of arena plane)
     };
 }

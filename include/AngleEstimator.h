@@ -28,16 +28,16 @@
 class AngleEstimator {
 public:
     // y1, y2     : distance from the robot's geometric centre to each accelerometer
-    //              along the separation axis, in metres (both positive scalars).
-    //              accel1 is placed at +y1 (e.g. the "top" sensor),
-    //              accel2 is placed at −y2 (e.g. the "bottom" sensor).
+    //              along the separation axis (left-right = sensor x), in metres.
+    //              The two sensors are 22.6 mm chip-to-chip; midpoint = centre,
+    //              so y1 = y2 = 11.3 mm = 0.0113 m.
     //              When only one accelerometer is fitted, y1 is used as the spin
     //              radius for the single-sensor fallback.
     // fusionGain : magnetometer soft-correction weight per update (try 0.005)
     AngleEstimator(AccelerometerManager& accel,
                    MagnetometerTracker&  mag,
-                   float y1         = 0.033f,
-                   float y2         = 0.033f,
+                   float y1         = 0.0113f,
+                   float y2         = 0.0113f,
                    float fusionGain = 0.005f);
 
     void  update(uint32_t t_us);
@@ -73,10 +73,10 @@ private:
     float    _filteredAccel = 0.0f;  // used in single-sensor fallback path only
 
     // Spinning-centre geometry — updated every loop when two sensors are present.
-    float    _cx = 0.0f;     // spin-centre x-offset from geometric centre (m)
-    float    _cy = 0.0f;     // spin-centre y-offset (shifts with motor power)
-    float    _r1 = 0.033f;   // effective radius to accel1 from spin centre (m)
-    float    _r2 = 0.033f;   // effective radius to accel2 from spin centre (m)
+    float    _cx = 0.0f;      // spin-centre offset along forward axis (m)
+    float    _cy = 0.0f;      // spin-centre offset along separation axis (m, shifts with thrust)
+    float    _r1 = 0.0113f;  // effective radius to accel1 from spin centre (m)
+    float    _r2 = 0.0113f;  // effective radius to accel2 from spin centre (m)
 
     uint32_t _lastTime      = 0;
     bool     _firstUpdate   = true;
