@@ -15,23 +15,23 @@ void Accelerometer::init(int addr) {
 
 // Set per-axis offset (additive) and scale (multiplicative) for this accelerometer.
 // Applied as: adjusted = (raw + offset) * scale
-void Accelerometer::setAdjustment(Vector3d offset, Vector3d scale) {
+void Accelerometer::setAdjustment(Vec3d offset, Vec3d scale) {
     _offset = offset;
     _scale  = scale;
 }
 
-Vector3d Accelerometer::fetch() {
+Vec3d Accelerometer::fetch() {
     int16_t x, y, z;
     base.readAxes(x, y, z);
 
-    Vector3d raw{
+    Vec3d raw{
         base.convertToG(400, x),
         base.convertToG(400, y),
         base.convertToG(400, z)
     };
 
     // Apply per-accelerometer offset then scale
-    Vector3d adjusted{
+    Vec3d adjusted{
         (raw.x() + _offset.x()) * _scale.x(),
         (raw.y() + _offset.y()) * _scale.y(),
         (raw.z() + _offset.z()) * _scale.z()
@@ -59,8 +59,8 @@ void AccelerometerManager::init(int addr) {
 // scale:  multiplicative correction per axis (e.g. sensitivity mismatch)
 // Applied as: adjusted = (raw + offset) * scale
 void AccelerometerManager::setAdjustments(
-    Vector3d offset1, Vector3d scale1,
-    Vector3d offset2, Vector3d scale2)
+    Vec3d offset1, Vec3d scale1,
+    Vec3d offset2, Vec3d scale2)
 {
     accel1.setAdjustment(offset1, scale1);
     accel2.setAdjustment(offset2, scale2);
@@ -87,14 +87,14 @@ void AccelerometerManager::refresh() {
 }
 
 // Returns the averaged (or single-sensor) raw XYZ reading — call refresh() first.
-Vector3d AccelerometerManager::fetchXYZ() {
+Vec3d AccelerometerManager::fetchXYZ() {
     return _cache;
 }
 
 // Returns the averaged reading rotated into the Normal-Tangential-Up frame.
 // N = centripetal (toward spin centre), T = tangential, U = up (out of arena plane).
 // The 45° rotation in the x-z plane compensates for the sensor's physical mounting angle.
-Vector3d AccelerometerManager::fetchNTU() {
+Vec3d AccelerometerManager::fetchNTU() {
     return {
         SQRT_2_OVER_2 * (_cache.x() + _cache.z()),  // N — centripetal
         _cache.y(),                                   // T — tangential
@@ -105,8 +105,8 @@ Vector3d AccelerometerManager::fetchNTU() {
 // Individual per-sensor raw readings — call refresh() first.
 // Used by AngleEstimator for the differential centre-of-rotation calculation.
 // If only one accelerometer is fitted, both return the same value.
-Vector3d AccelerometerManager::fetchXYZ1() { return _cache1; }
-Vector3d AccelerometerManager::fetchXYZ2() { return _cache2; }
+Vec3d AccelerometerManager::fetchXYZ1() { return _cache1; }
+Vec3d AccelerometerManager::fetchXYZ2() { return _cache2; }
 
 // Blocking zero-G capture (~400 ms).
 // Reads ACCEL_CAL_ZERO_SAMPLES raw samples directly from each sensor (bypassing

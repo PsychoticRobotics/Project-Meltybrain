@@ -12,19 +12,6 @@
 #if IR_MODE == 1
 #include "IRArena.h"
 #endif
-#ifdef B1
-#undef B1
-#endif
-#ifdef B0
-#undef B0
-#endif
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
-#include "../lib/Eigen/Dense"
 #include <Wire.h>
 
 

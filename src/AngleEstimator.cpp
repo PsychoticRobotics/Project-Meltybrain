@@ -44,8 +44,8 @@ void AngleEstimator::update(uint32_t t_us) {
         //                   fetch().x() maps to the perpendicular in-plane axis.
         // If your physical sensor mounting uses different axes, swap .y() / .x() here.
 
-        Vector3d raw1 = _accel->fetchXYZ1();   // must call accelerometers.refresh() first
-        Vector3d raw2 = _accel->fetchXYZ2();
+        Vec3d raw1 = _accel->fetchXYZ1();   // must call accelerometers.refresh() first
+        Vec3d raw2 = _accel->fetchXYZ2();
 
         float ay1 = (float)raw1.y();
         float ay2 = (float)raw2.y();
