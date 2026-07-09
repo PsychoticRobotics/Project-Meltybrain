@@ -78,12 +78,19 @@ void AccelerometerManager::refresh() {
     _cache1 = accel1.fetch();
     _cache2 = accel2.initialized ? accel2.fetch() : _cache1;
 
-    // Apply runtime calibration to the y-axis (separation axis) of each sensor.
-    // Corrects zero-G DC bias and range-dependent gain nonlinearity.
-    // The x and z axes retain only the static setAdjustment() corrections.
+    // Snapshot before runtime calibration so printDebug() can show both.
+    _raw1 = _cache1;
+    _raw2 = _cache2;
+
     if (_cal) {
-        _cache1.y() = _cal->apply(0, (float)_cache1.y());
-        _cache2.y() = _cal->apply(1, (float)_cache2.y());
+        // x (separation axis, left-right): full correction — zero offset + gain table.
+        _cache1.x() = _cal->apply (0, (float)_cache1.x());
+        _cache2.x() = _cal->apply (1, (float)_cache2.x());
+        // y (forward axis) and z (up axis): zero offset only.
+        _cache1.y() = _cal->applyY(0, (float)_cache1.y());
+        _cache2.y() = _cal->applyY(1, (float)_cache2.y());
+        _cache1.z() = _cal->applyZ(0, (float)_cache1.z());
+        _cache2.z() = _cal->applyZ(1, (float)_cache2.z());
     }
 
     _cache = accel2.initialized ? (_cache1 + _cache2) * 0.5 : _cache1;
@@ -95,15 +102,23 @@ Vec3d AccelerometerManager::fetchXYZ() {
 }
 
 void AccelerometerManager::printDebug() const {
-    // Sensor axes: x = right, y = forward, z = up  (both sensors identical orientation)
+    // Sensor axes: x = right (separation), y = forward, z = up
+    // raw = before runtime calibration;  cal = after
+    // x: full correction (zero + gain table);  y/z: zero offset only
     if (accel2.initialized) {
-        Serial.printf("[Accel] 1: x=%+7.2fg  y=%+7.2fg  z=%+7.2fg  |  "
-                             "2: x=%+7.2fg  y=%+7.2fg  z=%+7.2fg\n",
-            (float)_cache1.x(), (float)_cache1.y(), (float)_cache1.z(),
-            (float)_cache2.x(), (float)_cache2.y(), (float)_cache2.z());
+        Serial.printf("[Accel1] x(raw)=%+7.2fg x(cal)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg\n",
+            (float)_raw1.x(), (float)_cache1.x(),
+            (float)_raw1.y(), (float)_cache1.y(),
+            (float)_raw1.z(), (float)_cache1.z());
+        Serial.printf("[Accel2] x(raw)=%+7.2fg x(cal)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg\n",
+            (float)_raw2.x(), (float)_cache2.x(),
+            (float)_raw2.y(), (float)_cache2.y(),
+            (float)_raw2.z(), (float)_cache2.z());
     } else {
-        Serial.printf("[Accel] x=%+7.2fg  y=%+7.2fg  z=%+7.2fg\n",
-            (float)_cache.x(), (float)_cache.y(), (float)_cache.z());
+        Serial.printf("[Accel]  x(raw)=%+7.2fg x(cal)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg\n",
+            (float)_raw1.x(), (float)_cache.x(),
+            (float)_raw1.y(), (float)_cache.y(),
+            (float)_raw1.z(), (float)_cache.z());
     }
 }
 
@@ -123,20 +138,30 @@ void AccelerometerManager::captureZeroG() {
 
     Serial.println("[AccelCal] Capturing zero-G — keep robot still for ~400 ms...");
 
-    float sum0 = 0.0f, sum1 = 0.0f;
+    // Accumulate raw readings for both axes on both sensors.
+    // Reading directly from sensor objects (not cached path) so the offsets are
+    // measured in the same raw space that apply() / applyY() operate on.
+    float sumX0 = 0.0f, sumX1 = 0.0f;
+    float sumY0 = 0.0f, sumY1 = 0.0f;
+    float sumZ0 = 0.0f, sumZ1 = 0.0f;
     bool dual = accel2.initialized;
 
     for (uint16_t i = 0; i < ACCEL_CAL_ZERO_SAMPLES; i++) {
-        // Read directly from sensor objects — NOT through the calibrated cache —
-        // so the zero-G offset is measured in the same raw space that apply() uses.
-        sum0 += (float)accel1.fetch().y();
-        sum1 += dual ? (float)accel2.fetch().y() : (float)accel1.fetch().y();
+        Vec3d r0 = accel1.fetch();
+        Vec3d r1 = dual ? accel2.fetch() : r0;
+        sumX0 += (float)r0.x();  sumX1 += (float)r1.x();
+        sumY0 += (float)r0.y();  sumY1 += (float)r1.y();
+        sumZ0 += (float)r0.z();  sumZ1 += (float)r1.z();
         delay(2);  // ~2 ms per sample → 200 samples ≈ 400 ms total
     }
 
     float n = (float)ACCEL_CAL_ZERO_SAMPLES;
-    _cal->captureZero(0, sum0 / n);
-    _cal->captureZero(1, dual ? sum1 / n : sum0 / n);  // mirror if single-sensor
+    _cal->captureZero (0, sumX0 / n);
+    _cal->captureZero (1, dual ? sumX1 / n : sumX0 / n);
+    _cal->captureZeroY(0, sumY0 / n);
+    _cal->captureZeroY(1, dual ? sumY1 / n : sumY0 / n);
+    _cal->captureZeroZ(0, sumZ0 / n);
+    _cal->captureZeroZ(1, dual ? sumZ1 / n : sumZ0 / n);
 
     Serial.println("[AccelCal] Zero-G capture complete.");
 }

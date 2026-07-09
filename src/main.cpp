@@ -104,9 +104,13 @@ void handleCalibration(const uint16_t* ch) {
             Serial.println("[CalMode] Tables cleared — zero offsets preserved.");
         } else if (held >= 2000 && calSaveStartMs != UINT32_MAX) {
             // 2-second hold → commit current G readings + workingFactor.
-            float g0 = (float)accelerometers.fetchXYZ1().y();
-            float g1 = (float)accelerometers.fetchXYZ2().y();
-            accelCal.commitPoint(g0, g1);
+            Vec3d raw1 = accelerometers.fetchRawXYZ1();
+            Vec3d raw2 = accelerometers.fetchRawXYZ2();
+            accelCal.commitPoint(
+                (float)raw1.x(), (float)raw2.x(),
+                (float)raw1.y(), (float)raw2.y(),
+                (float)raw1.z(), (float)raw2.z()
+            );
             accelCal.resetWorkingFactor();
             calSaveStartMs = UINT32_MAX;    // prevent re-trigger at 4 s
         }
@@ -161,8 +165,8 @@ void handleCalibration(const uint16_t* ch) {
         Serial.printf("[CalMode] factor=%+.4f  ω=%.1frad/s  G0=%+.2fg  G1=%+.2fg  drift=%+.1f°/s\n",
                       accelCal.workingFactor(),
                       estimator.getOmega(),
-                      (float)accelerometers.fetchXYZ1().y(),
-                      (float)accelerometers.fetchXYZ2().y(),
+                      (float)accelerometers.fetchXYZ1().x(),
+                      (float)accelerometers.fetchXYZ2().x(),
                       driftDegPerSec);
         Serial.println("  [←→]=factor  [CH2 back 2s]=zero-G  [CH6 hold 2s]=commit  [CH6 hold 4s]=clear  [CH6 fwd 2s]=exit+save");
     }

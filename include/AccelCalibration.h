@@ -16,7 +16,7 @@ static constexpr float    ACCEL_CAL_FACTOR_STEP   = 0.005f;
 // EEPROM validity sentinels — change either byte to force a clean reset after
 // a firmware update that alters the EEPROM layout.
 static constexpr uint8_t  ACCEL_CAL_SENTINEL_A    = 0xAC;
-static constexpr uint8_t  ACCEL_CAL_SENTINEL_B    = 0xC1;
+static constexpr uint8_t  ACCEL_CAL_SENTINEL_B    = 0xC4;  // bumped: full gain tables for y and z
 
 // ─── Data structures ──────────────────────────────────────────────────────────
 
@@ -75,12 +75,10 @@ struct AxisCal {
  *
  * AXIS NOTE
  * ──────────
- * This manager corrects only one axis per sensor — the "separation axis" whose
- * readings feed the differential ω formula in AngleEstimator.  By default that
- * axis is the raw sensor y (.y() from Accelerometer::fetch()).  If your physical
- * mounting maps the separation axis to a different body axis, update the two
- * .y() references in AccelerometerManager::refresh() and in
- * AccelerometerManager::captureZeroG().
+ * The full correction (zero offset + gain table) is applied to the separation
+ * axis — sensor x (left-right), which feeds the differential ω formula.
+ * A zero-offset-only correction is also applied to sensor y (forward), which
+ * feeds the spin-centre offset (_cx) calculation in AngleEstimator.
  *
  * HOW CALIBRATION IS APPLIED
  * ───────────────────────────
@@ -89,8 +87,8 @@ struct AxisCal {
  * EEPROM USAGE
  * ─────────────
  * Starts at ACCEL_CAL_EEPROM_BASE.  Total footprint:
- *   2 sentinel bytes + 2 × sizeof(AxisCal) = 2 + 144 = 146 bytes.
- * Teensy 4.1 provides 4284 bytes of emulated EEPROM — plenty of headroom.
+ *   2 sentinel bytes + 6 × sizeof(AxisCal) = 434 bytes.
+ * Teensy 4.x provides 4284 bytes of emulated EEPROM — plenty of headroom.
  * All multi-byte fields are written with EEPROM.put() (unlike PotatoMelt which
  * uses the single-byte EEPROM.write() on floats, silently corrupting them).
  *
@@ -137,21 +135,32 @@ public:
     // ── Runtime correction ────────────────────────────────────────────────────
 
     /**
-     * Apply the full correction to one raw G reading.
-     * sensorIdx: 0 = accel1 ("top" sensor), 1 = accel2 ("bottom" sensor).
+     * Apply the full correction (zero offset + gain table) to a raw x-axis reading.
+     * Used for the separation axis (sensor x, left-right) that feeds the ω formula.
+     * sensorIdx: 0 = accel1, 1 = accel2.
      * Returns: (raw − zeroOffset) × (1 + piecewise_interpolated_factor)
-     * With no calibration data loaded this is simply (raw − 0) × 1 = raw.
      */
     float apply(uint8_t sensorIdx, float rawG) const;
+
+    /** Full correction (zero offset + gain table) for the y-axis (forward). */
+    float applyY(uint8_t sensorIdx, float rawG) const;
+
+    /** Full correction (zero offset + gain table) for the z-axis (up). */
+    float applyZ(uint8_t sensorIdx, float rawG) const;
 
     // ── Calibration session API ───────────────────────────────────────────────
 
     /**
-     * Store the zero-G offset for one sensor.
-     * Pass in the mean of ACCEL_CAL_ZERO_SAMPLES raw readings collected at rest
-     * (AccelerometerManager::captureZeroG() does the sampling for you).
+     * Store the zero-G offset for one sensor's x-axis (separation axis).
+     * Pass in the mean of ACCEL_CAL_ZERO_SAMPLES raw readings collected at rest.
      */
     void captureZero(uint8_t sensorIdx, float mean);
+
+    /**
+     * Store the zero-G offset for one sensor's y-axis (forward axis).
+     */
+    void captureZeroY(uint8_t sensorIdx, float mean);
+    void captureZeroZ(uint8_t sensorIdx, float mean);
 
     /**
      * The correction factor currently being tuned.
@@ -163,13 +172,14 @@ public:
     void  resetWorkingFactor()           { _workingFactor = 0.0f; }
 
     /**
-     * Commit the current workingFactor to both sensors' tables.
-     * gSensor0 / gSensor1: the raw G reading on the separation axis at the
-     * moment of commit for each sensor (AccelerometerManager::fetchXYZ1/2().y()).
-     * A sorted insert is performed; uses ring-buffer eviction if the table is full.
-     * Both sensors receive the same factor because they measure the same rotation.
+     * Commit the current workingFactor to all three axes for both sensors.
+     * Pass the raw (pre-calibration) readings from fetchRawXYZ1/2().
+     * All tables receive the same factor; G values differ per axis so each table
+     * builds its own piecewise curve independently.
      */
-    void commitPoint(float gSensor0, float gSensor1);
+    void commitPoint(float xS0, float xS1,
+                     float yS0, float yS1,
+                     float zS0, float zS1);
 
     /** Clear the correction table for one sensor (leaves zeroOffset intact). */
     void clearTable(uint8_t sensorIdx);
@@ -186,17 +196,15 @@ public:
     bool isDirty() const { return _dirty; }
 
 private:
-    AxisCal _cal[2];
+    AxisCal _cal [2];  // x-axis (separation): zero offset + gain table
+    AxisCal _calY[2];  // y-axis (forward):    zero offset + gain table
+    AxisCal _calZ[2];  // z-axis (up):         zero offset + gain table (~1g at rest)
     float   _workingFactor = 0.0f;
     bool    _dirty         = false;
 
     /** Linear interpolation between the two surrounding table entries. */
     float interpolate(const AxisCal& c, float absG) const;
 
-    /**
-     * Insert (g, factor) into sensor idx's table in sorted order.
-     * If the table is full, the entry at evictPos is overwritten (ring buffer),
-     * then the table is re-sorted with an insertion sort (max 8 elements).
-     */
-    void sortedInsert(uint8_t sensorIdx, float g, float factor);
+    void sortedInsert(uint8_t sensorIdx, float g, float factor);  // inserts into _cal[sensorIdx]
+    void sortedInsertAxis(AxisCal& c, float g, float factor);     // inserts into an arbitrary AxisCal
 };

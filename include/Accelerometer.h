@@ -64,10 +64,13 @@ public:
     Vec3d fetchXYZ();   // calibration-corrected average across sensors
 
     // ── Per-sensor readings (for differential centre-of-rotation calc) ────
-    // These return the individual cached readings with calibration already applied.
-    // If only one sensor is fitted, fetchXYZ2 mirrors fetchXYZ1.
+    // fetchXYZ1/2: calibration applied (use these in the estimator).
+    // fetchRawXYZ1/2: before runtime calibration (use when committing cal points).
+    // If only one sensor is fitted, sensor-2 variants mirror sensor 1.
     Vec3d fetchXYZ1();
     Vec3d fetchXYZ2();
+    Vec3d fetchRawXYZ1() const { return _raw1; }
+    Vec3d fetchRawXYZ2() const { return _raw2; }
 
     /**
      * Zero-G offset capture (blocking, ~400 ms).
@@ -90,6 +93,8 @@ private:
     Vec3d _cache {0, 0, 0};  // averaged (or single) — used by fetchXYZ
     Vec3d _cache1{0, 0, 0};  // accel1 individual reading (calibration applied)
     Vec3d _cache2{0, 0, 0};  // accel2 individual reading (mirrors _cache1 if not fitted)
+    Vec3d _raw1  {0, 0, 0};  // accel1 before runtime calibration — for printDebug()
+    Vec3d _raw2  {0, 0, 0};  // accel2 before runtime calibration — for printDebug()
 };
 
 #endif //MELTYBRAIN_ACCELEROMETER_H

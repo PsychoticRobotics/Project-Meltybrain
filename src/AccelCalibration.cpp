@@ -19,7 +19,11 @@
 
 static constexpr uint16_t ADDR_SENTINEL = ACCEL_CAL_EEPROM_BASE;
 static constexpr uint16_t ADDR_CAL0     = ADDR_SENTINEL + 2;
-static constexpr uint16_t ADDR_CAL1     = ADDR_CAL0 + (uint16_t)sizeof(AxisCal);
+static constexpr uint16_t ADDR_CAL1     = ADDR_CAL0    + (uint16_t)sizeof(AxisCal);
+static constexpr uint16_t ADDR_CALY0    = ADDR_CAL1    + (uint16_t)sizeof(AxisCal);
+static constexpr uint16_t ADDR_CALY1    = ADDR_CALY0   + (uint16_t)sizeof(AxisCal);
+static constexpr uint16_t ADDR_CALZ0    = ADDR_CALY1   + (uint16_t)sizeof(AxisCal);
+static constexpr uint16_t ADDR_CALZ1    = ADDR_CALZ0   + (uint16_t)sizeof(AxisCal);
 
 // ─── Persistence ─────────────────────────────────────────────────────────────
 
@@ -28,16 +32,29 @@ void AccelCalibrationManager::load() {
     uint8_t s1 = EEPROM.read(ADDR_SENTINEL + 1);
 
     if (s0 == ACCEL_CAL_SENTINEL_A && s1 == ACCEL_CAL_SENTINEL_B) {
-        EEPROM.get(ADDR_CAL0, _cal[0]);
-        EEPROM.get(ADDR_CAL1, _cal[1]);
+        EEPROM.get(ADDR_CAL0,  _cal [0]);
+        EEPROM.get(ADDR_CAL1,  _cal [1]);
+        EEPROM.get(ADDR_CALY0, _calY[0]);
+        EEPROM.get(ADDR_CALY1, _calY[1]);
+        EEPROM.get(ADDR_CALZ0, _calZ[0]);
+        EEPROM.get(ADDR_CALZ1, _calZ[1]);
 
         // Bounds-check lengths in case of partial EEPROM corruption.
-        _cal[0].len = min(_cal[0].len, (uint8_t)ACCEL_CAL_POINTS);
-        _cal[1].len = min(_cal[1].len, (uint8_t)ACCEL_CAL_POINTS);
+        for (uint8_t i = 0; i < 2; i++) {
+            _cal [i].len = min(_cal [i].len, (uint8_t)ACCEL_CAL_POINTS);
+            _calY[i].len = min(_calY[i].len, (uint8_t)ACCEL_CAL_POINTS);
+            _calZ[i].len = min(_calZ[i].len, (uint8_t)ACCEL_CAL_POINTS);
+        }
 
-        Serial.printf("[AccelCal] Loaded — S0: zero=%.3fg, %u pts | S1: zero=%.3fg, %u pts\n",
-                      _cal[0].zeroOffset, _cal[0].len,
-                      _cal[1].zeroOffset, _cal[1].len);
+        Serial.printf("[AccelCal] Loaded — "
+                      "S0: x(zero=%.3fg %upts) y(zero=%.3fg %upts) z(zero=%.3fg %upts) | "
+                      "S1: x(zero=%.3fg %upts) y(zero=%.3fg %upts) z(zero=%.3fg %upts)\n",
+                      _cal [0].zeroOffset, _cal [0].len,
+                      _calY[0].zeroOffset, _calY[0].len,
+                      _calZ[0].zeroOffset, _calZ[0].len,
+                      _cal [1].zeroOffset, _cal [1].len,
+                      _calY[1].zeroOffset, _calY[1].len,
+                      _calZ[1].zeroOffset, _calZ[1].len);
     } else {
         reset();
         Serial.printf("[AccelCal] EEPROM blank or stale (sentinel %02X %02X) — neutral defaults.\n",
@@ -50,8 +67,12 @@ void AccelCalibrationManager::save() {
     // which only writes a single byte and would corrupt float fields.
     EEPROM.write(ADDR_SENTINEL,     ACCEL_CAL_SENTINEL_A);
     EEPROM.write(ADDR_SENTINEL + 1, ACCEL_CAL_SENTINEL_B);
-    EEPROM.put(ADDR_CAL0, _cal[0]);
-    EEPROM.put(ADDR_CAL1, _cal[1]);
+    EEPROM.put(ADDR_CAL0,  _cal [0]);
+    EEPROM.put(ADDR_CAL1,  _cal [1]);
+    EEPROM.put(ADDR_CALY0, _calY[0]);
+    EEPROM.put(ADDR_CALY1, _calY[1]);
+    EEPROM.put(ADDR_CALZ0, _calZ[0]);
+    EEPROM.put(ADDR_CALZ1, _calZ[1]);
     _dirty = false;
 
     Serial.printf("[AccelCal] Saved to EEPROM (%u + %u correction pts).\n",
@@ -60,11 +81,12 @@ void AccelCalibrationManager::save() {
 
 void AccelCalibrationManager::reset() {
     for (uint8_t i = 0; i < 2; i++) {
-        _cal[i].zeroOffset = 0.0f;
-        _cal[i].len        = 0;
-        _cal[i].evictPos   = 0;
-        for (uint8_t j = 0; j < ACCEL_CAL_POINTS; j++) {
-            _cal[i].table[j] = {0.0f, 0.0f};
+        for (AxisCal* c : {&_cal[i], &_calY[i], &_calZ[i]}) {
+            c->zeroOffset = 0.0f;
+            c->len        = 0;
+            c->evictPos   = 0;
+            for (uint8_t j = 0; j < ACCEL_CAL_POINTS; j++)
+                c->table[j] = {0.0f, 0.0f};
         }
     }
     _workingFactor = 0.0f;
@@ -92,27 +114,67 @@ float AccelCalibrationManager::apply(uint8_t sensorIdx, float rawG) const {
 void AccelCalibrationManager::captureZero(uint8_t sensorIdx, float mean) {
     _cal[sensorIdx & 1].zeroOffset = mean;
     _dirty = true;
-    Serial.printf("[AccelCal] Zero offset S%u = %+.4f g\n", sensorIdx, mean);
+    Serial.printf("[AccelCal] x zero S%u = %+.4f g\n", sensorIdx, mean);
 }
 
-void AccelCalibrationManager::commitPoint(float gSensor0, float gSensor1) {
-    // Subtract each sensor's own zero offset before storing the G reference
-    // so the table is indexed in the same "corrected-DC" space that apply() uses.
-    float g0 = fabsf(gSensor0 - _cal[0].zeroOffset);
-    float g1 = fabsf(gSensor1 - _cal[1].zeroOffset);
-
-    sortedInsert(0, g0, _workingFactor);
-    sortedInsert(1, g1, _workingFactor);
+void AccelCalibrationManager::captureZeroY(uint8_t sensorIdx, float mean) {
+    _calY[sensorIdx & 1].zeroOffset = mean;
     _dirty = true;
+    Serial.printf("[AccelCal] y zero S%u = %+.4f g\n", sensorIdx, mean);
+}
 
-    Serial.printf("[AccelCal] Point committed — factor=%+.4f  S0 @ %.2fg  S1 @ %.2fg\n",
-                  _workingFactor, g0, g1);
+void AccelCalibrationManager::captureZeroZ(uint8_t sensorIdx, float mean) {
+    _calZ[sensorIdx & 1].zeroOffset = mean;
+    _dirty = true;
+    Serial.printf("[AccelCal] z zero S%u = %+.4f g\n", sensorIdx, mean);
+}
+
+float AccelCalibrationManager::applyY(uint8_t sensorIdx, float rawG) const {
+    const AxisCal& c = _calY[sensorIdx & 1];
+    float g = rawG - c.zeroOffset;
+    if (c.len > 0) g *= (1.0f + interpolate(c, fabsf(g)));
+    return g;
+}
+
+float AccelCalibrationManager::applyZ(uint8_t sensorIdx, float rawG) const {
+    const AxisCal& c = _calZ[sensorIdx & 1];
+    float g = rawG - c.zeroOffset;
+    if (c.len > 0) g *= (1.0f + interpolate(c, fabsf(g)));
+    return g;
+}
+
+void AccelCalibrationManager::commitPoint(float xS0, float xS1,
+                                          float yS0, float yS1,
+                                          float zS0, float zS1) {
+    // Subtract each sensor's zero offset before storing so the table is indexed
+    // in the same DC-corrected space that apply() uses. Take absolute value
+    // since the gain correction is symmetric (same nonlinearity at ±G).
+    auto dc = [](float raw, float zero) { return fabsf(raw - zero); };
+
+    sortedInsert(0, dc(xS0, _cal [0].zeroOffset), _workingFactor);
+    sortedInsert(1, dc(xS1, _cal [1].zeroOffset), _workingFactor);
+
+    // y and z use their own AxisCal tables but the same helper — we pass the
+    // sensor index offset by 2/4 to address _calY/_calZ via sortedInsertAxis().
+    auto insertY = [&](uint8_t i, float raw) {
+        sortedInsertAxis(_calY[i], dc(raw, _calY[i].zeroOffset), _workingFactor);
+    };
+    auto insertZ = [&](uint8_t i, float raw) {
+        sortedInsertAxis(_calZ[i], dc(raw, _calZ[i].zeroOffset), _workingFactor);
+    };
+    insertY(0, yS0);  insertY(1, yS1);
+    insertZ(0, zS0);  insertZ(1, zS1);
+
+    _dirty = true;
+    Serial.printf("[AccelCal] Committed factor=%+.4f\n", _workingFactor);
     printTable();
 }
 
 void AccelCalibrationManager::clearTable(uint8_t sensorIdx) {
-    _cal[sensorIdx & 1].len      = 0;
-    _cal[sensorIdx & 1].evictPos = 0;
+    uint8_t i = sensorIdx & 1;
+    _cal [i].len = 0;  _cal [i].evictPos = 0;
+    _calY[i].len = 0;  _calY[i].evictPos = 0;
+    _calZ[i].len = 0;  _calZ[i].evictPos = 0;
     _dirty = true;
 }
 
@@ -125,13 +187,16 @@ void AccelCalibrationManager::clearAllTables() {
 // ─── Diagnostics ─────────────────────────────────────────────────────────────
 
 void AccelCalibrationManager::printTable() const {
+    const char* labels[] = {"x", "y", "z"};
     for (uint8_t s = 0; s < 2; s++) {
-        Serial.printf("  [S%u | zero=%+.3fg | %u/%u pts]",
-                      s, _cal[s].zeroOffset, _cal[s].len, ACCEL_CAL_POINTS);
-        for (uint8_t i = 0; i < _cal[s].len; i++) {
-            Serial.printf("  %.1fG→%+.4f", _cal[s].table[i].g, _cal[s].table[i].factor);
+        const AxisCal* axes[] = {&_cal[s], &_calY[s], &_calZ[s]};
+        for (uint8_t a = 0; a < 3; a++) {
+            Serial.printf("  [S%u %s | zero=%+.3fg | %u/%u pts]",
+                          s, labels[a], axes[a]->zeroOffset, axes[a]->len, ACCEL_CAL_POINTS);
+            for (uint8_t i = 0; i < axes[a]->len; i++)
+                Serial.printf("  %.1fG→%+.4f", axes[a]->table[i].g, axes[a]->table[i].factor);
+            Serial.println();
         }
-        Serial.println();
     }
 }
 
@@ -154,7 +219,10 @@ float AccelCalibrationManager::interpolate(const AxisCal& c, float absG) const {
 }
 
 void AccelCalibrationManager::sortedInsert(uint8_t sensorIdx, float g, float factor) {
-    AxisCal& c = _cal[sensorIdx];
+    sortedInsertAxis(_cal[sensorIdx], g, factor);
+}
+
+void AccelCalibrationManager::sortedInsertAxis(AxisCal& c, float g, float factor) {
 
     if (c.len < ACCEL_CAL_POINTS) {
         // Find the correct sorted position.
