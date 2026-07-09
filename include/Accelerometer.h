@@ -84,6 +84,10 @@ public:
     // Print cached x/y/z for each sensor to Serial (call after refresh()).
     void printDebug() const;
 
+    // Print a single Serial Plotter-compatible line (label:value pairs).
+    // Use instead of printDebug() when graphing in Arduino IDE / PlatformIO plotter.
+    void printPlotter() const;
+
 private:
     Accelerometer accel1;
     Accelerometer accel2;
@@ -95,6 +99,8 @@ private:
     Vec3d _cache2{0, 0, 0};  // accel2 individual reading (mirrors _cache1 if not fitted)
     Vec3d _raw1  {0, 0, 0};  // accel1 before runtime calibration — for printDebug()
     Vec3d _raw2  {0, 0, 0};  // accel2 before runtime calibration — for printDebug()
+    Vec3d _ema1  {0, 0, 0};  // EMA of _cache1 (α=0.01) — for printDebug()
+    Vec3d _ema2  {0, 0, 0};  // EMA of _cache2 (α=0.01) — for printDebug()
 };
 
 #endif //MELTYBRAIN_ACCELEROMETER_H

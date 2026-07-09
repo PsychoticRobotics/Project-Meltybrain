@@ -290,7 +290,7 @@ void loop() {
      Serial.println(channels[2]);
     currentTime = micros();
     accelerometers.refresh();       // 1. read accelerometer
-    accelerometers.printDebug();
+    accelerometers.printPlotter();  // swap to printDebug() for human-readable output
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
 

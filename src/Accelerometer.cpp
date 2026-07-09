@@ -94,6 +94,9 @@ void AccelerometerManager::refresh() {
     }
 
     _cache = accel2.initialized ? (_cache1 + _cache2) * 0.5 : _cache1;
+
+    _ema1 = _ema1 * 0.99 + _cache1 * 0.01;
+    _ema2 = _ema2 * 0.99 + _cache2 * 0.01;
 }
 
 // Returns the averaged (or single-sensor) raw XYZ reading — call refresh() first.
@@ -101,24 +104,52 @@ Vec3d AccelerometerManager::fetchXYZ() {
     return _cache;
 }
 
+void AccelerometerManager::printPlotter() const {
+    // Teleplot format: >label:value|label:value\n
+    // Axes: x=right (separation), y=forward, z=up.  Suffixes: r=raw, c=cal, e=ema.
+    if (accel2.initialized) {
+        Serial.printf(
+            ">A1xr:%.2f|A1xc:%.2f|A1xe:%.2f"
+            "|A1yr:%.2f|A1yc:%.2f|A1ye:%.2f"
+            "|A1zr:%.2f|A1zc:%.2f|A1ze:%.2f"
+            "|A2xr:%.2f|A2xc:%.2f|A2xe:%.2f"
+            "|A2yr:%.2f|A2yc:%.2f|A2ye:%.2f"
+            "|A2zr:%.2f|A2zc:%.2f|A2ze:%.2f\n",
+            (float)_raw1.x(), (float)_cache1.x(), (float)_ema1.x(),
+            (float)_raw1.y(), (float)_cache1.y(), (float)_ema1.y(),
+            (float)_raw1.z(), (float)_cache1.z(), (float)_ema1.z(),
+            (float)_raw2.x(), (float)_cache2.x(), (float)_ema2.x(),
+            (float)_raw2.y(), (float)_cache2.y(), (float)_ema2.y(),
+            (float)_raw2.z(), (float)_cache2.z(), (float)_ema2.z());
+    } else {
+        Serial.printf(
+            ">Axr:%.2f|Axc:%.2f|Axe:%.2f"
+            "|Ayr:%.2f|Ayc:%.2f|Aye:%.2f"
+            "|Azr:%.2f|Azc:%.2f|Aze:%.2f\n",
+            (float)_raw1.x(), (float)_cache.x(), (float)_ema1.x(),
+            (float)_raw1.y(), (float)_cache.y(), (float)_ema1.y(),
+            (float)_raw1.z(), (float)_cache.z(), (float)_ema1.z());
+    }
+}
+
 void AccelerometerManager::printDebug() const {
     // Sensor axes: x = right (separation), y = forward, z = up
     // raw = before runtime calibration;  cal = after
     // x: full correction (zero + gain table);  y/z: zero offset only
     if (accel2.initialized) {
-        Serial.printf("[Accel1] x(raw)=%+7.2fg x(cal)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg\n",
-            (float)_raw1.x(), (float)_cache1.x(),
-            (float)_raw1.y(), (float)_cache1.y(),
-            (float)_raw1.z(), (float)_cache1.z());
-        Serial.printf("[Accel2] x(raw)=%+7.2fg x(cal)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg\n",
-            (float)_raw2.x(), (float)_cache2.x(),
-            (float)_raw2.y(), (float)_cache2.y(),
-            (float)_raw2.z(), (float)_cache2.z());
+        Serial.printf("[Accel1] x(raw)=%+7.2fg x(cal)=%+7.2fg x(ema)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg y(ema)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg z(ema)=%+7.2fg\n",
+            (float)_raw1.x(), (float)_cache1.x(), (float)_ema1.x(),
+            (float)_raw1.y(), (float)_cache1.y(), (float)_ema1.y(),
+            (float)_raw1.z(), (float)_cache1.z(), (float)_ema1.z());
+        Serial.printf("[Accel2] x(raw)=%+7.2fg x(cal)=%+7.2fg x(ema)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg y(ema)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg z(ema)=%+7.2fg\n",
+            (float)_raw2.x(), (float)_cache2.x(), (float)_ema2.x(),
+            (float)_raw2.y(), (float)_cache2.y(), (float)_ema2.y(),
+            (float)_raw2.z(), (float)_cache2.z(), (float)_ema2.z());
     } else {
-        Serial.printf("[Accel]  x(raw)=%+7.2fg x(cal)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg\n",
-            (float)_raw1.x(), (float)_cache.x(),
-            (float)_raw1.y(), (float)_cache.y(),
-            (float)_raw1.z(), (float)_cache.z());
+        Serial.printf("[Accel]  x(raw)=%+7.2fg x(cal)=%+7.2fg x(ema)=%+7.2fg  y(raw)=%+7.2fg y(cal)=%+7.2fg y(ema)=%+7.2fg  z(raw)=%+7.2fg z(cal)=%+7.2fg z(ema)=%+7.2fg\n",
+            (float)_raw1.x(), (float)_cache.x(), (float)_ema1.x(),
+            (float)_raw1.y(), (float)_cache.y(), (float)_ema1.y(),
+            (float)_raw1.z(), (float)_cache.z(), (float)_ema1.z());
     }
 }
 
