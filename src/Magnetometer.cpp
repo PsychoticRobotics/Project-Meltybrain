@@ -73,28 +73,79 @@ void PhaseFitter::addSample(float mag_x, uint32_t t_us) {
 }
 
 void PhaseFitter::_refit() {
+    // Fit mag_x(t) = P·cos(ωt) + Q·sin(ωt) + C for [P, Q, C].
+    //
+    // Solving the 3×3 normal equations directly avoids pulling in Eigen just
+    // for a QR decomposition on a rank-3 problem. Sums are accumulated over
+    // the sample window; Cramer's rule closes out the tiny linear system.
+    //
+    //   Let a_i = cos(ω·τ_i),  b_i = sin(ω·τ_i),  c_i = 1
+    //   Normal-equation matrix M = Aᵀ A:
+    //     M = [ Σa²   Σab   Σa  ]
+    //         [ Σab   Σb²   Σb  ]
+    //         [ Σa    Σb    n   ]
+    //   RHS   r = Aᵀ y:
+    //     r = [ Σa·y ; Σb·y ; Σy ]
+    //   Solve M · [P Q C]ᵀ = r via Cramer.
+
     int n = _count;
 
-    // Anchor time to oldest sample in window so cos/sin arguments stay small
+    // Anchor time to the oldest sample so ω·τ stays small.
     int   i0 = (_head - n + WINDOW) % WINDOW;
     float t0 = (float)_t[i0] * 1e-6f;
 
-    MatrixXf A(n, 3);
-    VectorXf b(n);
+    float Saa = 0.0f, Sab = 0.0f, Sa = 0.0f;
+    float Sbb = 0.0f, Sb = 0.0f;
+    float Say = 0.0f, Sby = 0.0f, Sy = 0.0f;
 
     for (int i = 0; i < n; i++) {
         int   idx = (_head - n + i + WINDOW) % WINDOW;
         float t   = (float)_t[idx] * 1e-6f - t0;
         float wt  = _omega * t;
-        A(i, 0)   = cosf(wt);
-        A(i, 1)   = sinf(wt);
-        A(i, 2)   = 1.0f;
-        b(i)      = _x[idx];
+        float a   = cosf(wt);
+        float b   = sinf(wt);
+        float y   = _x[idx];
+
+        Saa += a * a;
+        Sab += a * b;
+        Sa  += a;
+        Sbb += b * b;
+        Sb  += b;
+        Say += a * y;
+        Sby += b * y;
+        Sy  += y;
     }
 
-    // Solve mag_x(t) = P·cos(ωt) + Q·sin(ωt) + C for [P, Q, C]
-    Vector3f c = A.colPivHouseholderQr().solve(b);
-    _phi   = atan2f(-c(1), c(0));
+    // 3×3 determinant of M via cofactor expansion along row 0.
+    float m00 = Sbb * (float)n - Sb  * Sb;
+    float m01 = Sab * (float)n - Sb  * Sa;
+    float m02 = Sab * Sb        - Sbb * Sa;
+
+    float det = Saa * m00 - Sab * m01 + Sa * m02;
+
+    // Rank-deficient / ill-conditioned window — skip this fit, keep last _phi.
+    if (fabsf(det) < 1e-12f) {
+        _valid = false;
+        return;
+    }
+    float invDet = 1.0f / det;
+
+    // Cramer's rule — replace each column of M with r and take the determinant.
+    // Column 0 replaced (solves for P):
+    float detP = Say * m00
+               - Sab * (Sby * (float)n - Sb * Sy)
+               + Sa  * (Sby * Sb        - Sbb * Sy);
+
+    // Column 1 replaced (solves for Q):
+    float detQ = Saa * (Sby * (float)n - Sb * Sy)
+               - Say * m01
+               + Sa  * (Sab * Sy        - Say * Sb);
+
+    float P = detP * invDet;
+    float Q = detQ * invDet;
+    // C is not needed downstream — atan2 uses only P, Q — so we skip computing it.
+
+    _phi   = atan2f(-Q, P);
     _valid = true;
 }
 

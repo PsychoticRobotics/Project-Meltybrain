@@ -15,22 +15,6 @@
 
 #include <Arduino.h>
 #include <SparkFun_MMC5983MA_Arduino_Library.h>
-// Arduino.h defines B0/B1/min/max macros that collide with Eigen internals.
-#ifdef B1
-#undef B1
-#endif
-#ifdef B0
-#undef B0
-#endif
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
-#include "../lib/Eigen/Dense"
-
-using namespace Eigen;
 
 // ─── SpinRateEstimator ────────────────────────────────────────────────────────
 // Detects rising zero crossings on a single magnetometer axis and estimates
