@@ -78,6 +78,9 @@ public:
      */
     void captureZeroG();
 
+    // Print cached x/y/z for each sensor to Serial (call after refresh()).
+    void printDebug() const;
+
 private:
     Accelerometer accel1;
     Accelerometer accel2;

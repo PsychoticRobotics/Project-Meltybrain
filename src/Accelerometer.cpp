@@ -94,6 +94,19 @@ Vec3d AccelerometerManager::fetchXYZ() {
     return _cache;
 }
 
+void AccelerometerManager::printDebug() const {
+    // Sensor axes: x = right, y = forward, z = up  (both sensors identical orientation)
+    if (accel2.initialized) {
+        Serial.printf("[Accel] 1: x=%+7.2fg  y=%+7.2fg  z=%+7.2fg  |  "
+                             "2: x=%+7.2fg  y=%+7.2fg  z=%+7.2fg\n",
+            (float)_cache1.x(), (float)_cache1.y(), (float)_cache1.z(),
+            (float)_cache2.x(), (float)_cache2.y(), (float)_cache2.z());
+    } else {
+        Serial.printf("[Accel] x=%+7.2fg  y=%+7.2fg  z=%+7.2fg\n",
+            (float)_cache.x(), (float)_cache.y(), (float)_cache.z());
+    }
+}
+
 // Individual per-sensor raw readings — call refresh() first.
 // Used by AngleEstimator for the differential centre-of-rotation calculation.
 // If only one accelerometer is fitted, both return the same value.
