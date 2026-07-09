@@ -230,6 +230,10 @@ void setup() {
     telemetry.init();
     Serial.println("...Telemetry link Initialized.");
 
+    Serial.println("Capturing zero-G baseline — keep robot still...");
+    accelerometers.captureZeroG();
+    Serial.println("...Zero-G capture complete.");
+
     Serial.println("--- SETUP COMPLETE, entering main loop ---");
     previousTime = micros();
 }
