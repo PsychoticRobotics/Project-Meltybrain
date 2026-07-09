@@ -3,7 +3,6 @@
 #include <Wire.h>
 
 const double GRAVITY = 9.81;
-const double SQRT_2_OVER_2 = 0.70710678118;
 
 void Accelerometer::init(int addr) {
     base.setI2CAddr(addr);
@@ -93,23 +92,6 @@ void AccelerometerManager::refresh() {
 // Returns the averaged (or single-sensor) raw XYZ reading — call refresh() first.
 Vec3d AccelerometerManager::fetchXYZ() {
     return _cache;
-}
-
-// Returns the averaged reading rotated into the Normal-Tangential-Up frame.
-// N = centripetal (toward spin centre), T = tangential, U = up (out of arena plane).
-//
-// Sensor axes (both sensors identical): x = right, y = forward, z = up.
-// The sensors sit on the left-right axis of the robot, so at any instant the
-// centripetal component is primarily along sensor x and the tangential component
-// is primarily along sensor y.  The 45° mix of x and z below was carried over
-// from an earlier single-sensor mounting — verify against your physical install
-// and update if the sensor is no longer tilted 45° in the x-z plane.
-Vec3d AccelerometerManager::fetchNTU() {
-    return {
-        SQRT_2_OVER_2 * (_cache.x() + _cache.z()),  // N — centripetal (45° mix of right+up)
-        _cache.y(),                                   // T — tangential (forward)
-        SQRT_2_OVER_2 * (_cache.z() - _cache.x())   // U — vertical (out of arena plane)
-    };
 }
 
 // Individual per-sensor raw readings — call refresh() first.

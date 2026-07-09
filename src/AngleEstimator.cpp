@@ -80,7 +80,7 @@ void AngleEstimator::update(uint32_t t_us) {
         // ── Single-sensor fallback ────────────────────────────────────────────
         // Use the NTU normal component (centripetal direction) and treat _y1 as
         // the fixed spin radius (11.3 mm from centre to sensor chip).
-        float normalAccel = (float)_accel->fetchNTU().x();
+        float normalAccel = (float)_accel->fetchXYZ().x();  // centripetal ≈ sensor x (right axis)
         _filteredAccel    = 0.9f * _filteredAccel + 0.1f * normalAccel;
         _omega = sqrtf(fmaxf(_filteredAccel / _y1, 0.0f));
         _cx = 0.0f;

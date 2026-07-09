@@ -62,7 +62,6 @@ public:
 
     // ── Average-of-both (or single) readings ──────────────────────────────
     Vec3d fetchXYZ();   // calibration-corrected average across sensors
-    Vec3d fetchNTU();   // averaged, then rotated into Normal-Tangential-Up frame
 
     // ── Per-sensor readings (for differential centre-of-rotation calc) ────
     // These return the individual cached readings with calibration already applied.
@@ -85,7 +84,7 @@ private:
 
     AccelCalibrationManager* _cal = nullptr;  // null = no calibration
 
-    Vec3d _cache {0, 0, 0};  // averaged (or single) — used by fetchXYZ / fetchNTU
+    Vec3d _cache {0, 0, 0};  // averaged (or single) — used by fetchXYZ
     Vec3d _cache1{0, 0, 0};  // accel1 individual reading (calibration applied)
     Vec3d _cache2{0, 0, 0};  // accel2 individual reading (mirrors _cache1 if not fitted)
 };
