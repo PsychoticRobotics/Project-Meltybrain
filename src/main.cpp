@@ -204,11 +204,6 @@ void setup() {
     rc.init();
     Serial.println("...Receiver Initialized.");
 
-    Serial.println("Initializing Motors & Arming ESCs...");
-    motors.init();
-    delay(1000); // Motors/ESCs need at least 1 second to arm
-    Serial.println("...Motors Armed.");
-
     Serial.println("Initializing Magnetometer...");
     if (!mag.init()) {
         Serial.println("WARNING: Magnetometer not found — running on accelerometer only.");
@@ -238,6 +233,13 @@ void setup() {
     Serial.println("Capturing zero-G baseline — keep robot still...");
     accelerometers.captureZeroG();
     Serial.println("...Zero-G capture complete.");
+
+    // Arm motors last — everything above takes >1 s, giving the ESC plenty of
+    // boot time. The main loop starts immediately after so ESCCMD_tic() is
+    // called every iteration and the 250 ms watchdog never fires.
+    Serial.println("Initializing Motors & Arming ESCs...");
+    motors.init();
+    Serial.println("...Motors Armed.");
 
     Serial.println("--- SETUP COMPLETE, entering main loop ---");
     previousTime = micros();
