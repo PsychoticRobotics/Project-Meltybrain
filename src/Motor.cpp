@@ -21,9 +21,13 @@ void Motor::off() {
 
 void MotorManager::init() {
     ESCCMD_init(2);
-    ESCCMD_3D_on_silent(); // 3D mode must be pre-configured in ESC firmware (AM32 configurator)
-    ESCCMD_arm_all();
-    ESCCMD_start_timer();
+    int r;
+    r = ESCCMD_3D_on_silent();
+    Serial.printf("[Motors] 3D_on_silent: %d\n", r);
+    r = ESCCMD_arm_all();
+    Serial.printf("[Motors] arm_all: %d\n", r);
+    r = ESCCMD_start_timer();
+    Serial.printf("[Motors] start_timer: %d\n", r);
     motor1.init(0);
     motor2.init(1);
 }
