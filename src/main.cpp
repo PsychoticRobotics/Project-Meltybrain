@@ -5,6 +5,7 @@
 #include "Magnetometer.h"
 #include "AngleEstimator.h"
 #include "Motor.h"
+#include "../lib/teensyshot/ESCCMD.h"
 #include "Receiver.h"
 #include "Robot.h"
 #include "Telemetry.h"
@@ -244,6 +245,7 @@ void setup() {
 
 
 void loop() {
+    ESCCMD_tic();   // must be called every loop — sends queued DShot frames and services the ESC watchdog
     rc.fetch(channels, &status);
     if (rc.isLost()) {
         Serial.println("CRSF signal lost! Halting.");
@@ -279,7 +281,7 @@ void loop() {
         mag.update(micros());
         estimator.update(micros());
         handleCalibration(channels);
-        return;   // do not run motors or telemetry while calibrating
+        return;
     }
      Serial.print("Receiver: ");
      Serial.print("Ch 1: ");
