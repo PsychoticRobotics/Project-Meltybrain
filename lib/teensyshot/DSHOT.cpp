@@ -235,6 +235,8 @@ void DSHOT_init( int n ) {
       (*DSHOT_mods[i]).SM[DSHOT_sm[i]].OCTRL = FLEXPWM_SMOCTRL_POLX;
       (*DSHOT_mods[i]).OUTEN |= FLEXPWM_OUTEN_PWMX_EN(1 << DSHOT_sm[i]);
     } else if ( DSHOT_abx[i] == 1 ) {
+      // INDEP must be set so PWMB runs independently (not as PWMA complement)
+      (*DSHOT_mods[i]).SM[DSHOT_sm[i]].CTRL2 |= FLEXPWM_SMCTRL2_INDEP;
       (*DSHOT_mods[i]).OUTEN |= FLEXPWM_OUTEN_PWMB_EN(1 << DSHOT_sm[i]);
     } else {
       (*DSHOT_mods[i]).OUTEN |= FLEXPWM_OUTEN_PWMA_EN(1 << DSHOT_sm[i]);
