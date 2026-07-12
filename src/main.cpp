@@ -286,18 +286,18 @@ void loop() {
         handleCalibration(channels);
         return;
     }
-     Serial.print("Receiver: ");
-     Serial.print("Ch 1: ");
-     Serial.print(channels[0]);
-     Serial.print(" Ch 2: ");
-     Serial.print(channels[1]);
-     Serial.print(" Ch 3: ");
-     Serial.println(channels[2]);
+     //Serial.print("Receiver: ");
+     //Serial.print("Ch 1: ");
+     //Serial.print(channels[0]);
+     //Serial.print(" Ch 2: ");
+     //Serial.print(channels[1]);
+     //Serial.print(" Ch 3: ");
+     //Serial.println(channels[2]);
     currentTime = micros();
     accelerometers.refresh();       // 1. read accelerometer
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
-    Serial.printf(">omega:%.2f\n", estimator.getOmega());
+    //Serial.printf(">omega:%.2f\n", estimator.getOmega());
     static uint32_t lastDiagMs = 0;
     if (millis() - lastDiagMs >= 1000) {
         lastDiagMs = millis();
@@ -394,18 +394,18 @@ void loop() {
     if (currentTime % 100000 < 20000) {
         digitalWrite(GREEN_LED_PIN, HIGH);
         digitalWrite(RED_LED_PIN, HIGH);
-        Serial.println("LED ON");
+        //Serial.println("LED ON");
     }
     else {
         digitalWrite(GREEN_LED_PIN, LOW);
         digitalWrite(RED_LED_PIN, LOW);
-        Serial.println("LED OFF");
+        //Serial.println("LED OFF");
     }
 
-    Serial.print("Current time: ");
-    Serial.println(currentTime / 1000000.0, 6);
-    Serial.print("Time since previous: ");
-    Serial.println((currentTime - previousTime) / 1000000.0, 6);
+    //Serial.print("Current time: ");
+    //Serial.println(currentTime / 1000000.0, 6);
+    //Serial.print("Time since previous: ");
+    //Serial.println((currentTime - previousTime) / 1000000.0, 6);
 
     previousTime = currentTime;
 }
