@@ -309,6 +309,8 @@ void loop() {
         Serial.printf("[DSHOT] ISR0=%lu  ISR1=%lu\n",
                       (unsigned long)DSHOT_isr_count[0],
                       (unsigned long)DSHOT_isr_count[1]);
+        Serial.printf("[RC] ch0=%d ch1=%d ch2=%d ch3=%d\n",
+                      channels[0], channels[1], channels[2], channels[3]);
     }
 
 #if IR_MODE == 0
@@ -365,6 +367,7 @@ void loop() {
     );
 
     if (cmd.isTank) {
+        Serial.printf("[Motors] left=%.2f right=%.2f\n", cmd.left, cmd.right);
         motors.on(cmd.left, cmd.right);
     } else {
         robot.move(cmd.ch1_us, cmd.ch2_us, cmd.ch3_us);

@@ -22,8 +22,8 @@ void Motor::off() {
 void MotorManager::init() {
     ESCCMD_init(2);
     int r;
-    r = ESCCMD_3D_on_silent();
-    Serial.printf("[Motors] 3D_on_silent: %d\n", r);
+    // r = ESCCMD_3D_on_silent();
+    // Serial.printf("[Motors] 3D_on_silent: %d\n", r);
     r = ESCCMD_arm_all();
     Serial.printf("[Motors] arm_all: %d\n", r);
     r = ESCCMD_start_timer();
