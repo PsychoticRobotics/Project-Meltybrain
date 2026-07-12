@@ -248,7 +248,12 @@ void setup() {
 
 
 void loop() {
-    ESCCMD_tic();   // must be called every loop — sends queued DShot frames and services the ESC watchdog
+    // Drain all pending DShot tics. Calling tic() once per loop is insufficient
+    // when the loop runs slower than the 500 Hz timer — tic_pend accumulates and
+    // the ESCCMD watchdog (125 missed tics = 250 ms) disarms the ESCs.
+    for (int ticN = 0; ticN < 250; ticN++) {
+        if (ESCCMD_tic() != ESCCMD_TIC_OCCURED) break;
+    }
     rc.fetch(channels, &status);
     if (rc.isLost()) {
         Serial.println("CRSF signal lost! Halting.");
