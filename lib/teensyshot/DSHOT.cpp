@@ -142,14 +142,18 @@ DMAChannel          dma[DSHOT_MAX_OUTPUTS];
 // DMA data
 volatile uint16_t   DSHOT_dma_data[DSHOT_MAX_OUTPUTS][DSHOT_DMA_LENGTH];
 
+// ISR fire counters — readable from main loop for diagnostics
+volatile uint32_t   DSHOT_isr_count[DSHOT_MAX_OUTPUTS] = {};
+
 #if defined(__IMXRT1062__) // teensy 4.0
 
-/* 
+/*
  * DMA termination interrupt service routine (ISR) for each DMA channel
  */
 #define DSHOT_DMA_interrupt_routine( DSHOT_CHANNEL ) \
 void DSHOT_DMA_interrupt_routine_ ## DSHOT_CHANNEL( void ) { \
   dma[DSHOT_CHANNEL].clearInterrupt( ); \
+  DSHOT_isr_count[DSHOT_CHANNEL]++; \
   (*DSHOT_mods[DSHOT_CHANNEL]).MCTRL &= ~FLEXPWM_MCTRL_RUN( 1 << DSHOT_sm[DSHOT_CHANNEL] );  \
 }
 

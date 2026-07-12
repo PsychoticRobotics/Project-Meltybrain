@@ -25,6 +25,9 @@
 #define DSHOT_ERROR_RANGE         -3            // Value out of range
 #define DSHOT_ERROR_INTERNAL      -4            // Internal error
 
+// ISR fire counters (incremented in each DMA completion ISR)
+extern volatile uint32_t DSHOT_isr_count[6];
+
 // Function prototypes
 void DSHOT_init( int );
 int DSHOT_send( uint16_t*, uint8_t* );

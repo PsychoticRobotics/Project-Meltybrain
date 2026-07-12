@@ -6,6 +6,7 @@
 #include "AngleEstimator.h"
 #include "Motor.h"
 #include "../lib/teensyshot/ESCCMD.h"
+#include "../lib/teensyshot/DSHOT.h"
 #include "Receiver.h"
 #include "Robot.h"
 #include "Telemetry.h"
@@ -297,6 +298,13 @@ void loop() {
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
     Serial.printf(">omega:%.2f\n", estimator.getOmega());
+    static uint32_t lastDiagMs = 0;
+    if (millis() - lastDiagMs >= 1000) {
+        lastDiagMs = millis();
+        Serial.printf("[DSHOT] ISR0=%lu  ISR1=%lu\n",
+                      (unsigned long)DSHOT_isr_count[0],
+                      (unsigned long)DSHOT_isr_count[1]);
+    }
 
 #if IR_MODE == 0
     // 4. IR heading correction — runs after the estimator so it has fresh
