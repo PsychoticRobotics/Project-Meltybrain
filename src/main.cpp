@@ -367,7 +367,7 @@ void loop() {
     );
 
     if (cmd.isTank) {
-        Serial.printf("[Motors] left=%.2f right=%.2f\n", cmd.left, cmd.right);
+        //Serial.printf("[Motors] left=%.2f right=%.2f\n", cmd.left, cmd.right);
         motors.on(cmd.left, cmd.right);
     } else {
         robot.move(cmd.ch1_us, cmd.ch2_us, cmd.ch3_us);

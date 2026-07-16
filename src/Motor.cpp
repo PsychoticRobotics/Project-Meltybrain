@@ -10,11 +10,17 @@ void Motor::init(int index) {
 
 void Motor::on(float throttle) {
     throttle = constrain(throttle, -1.0f, 1.0f);
-    ESCCMD_throttle(motorIndex, (int16_t)(throttle * ESCCMD_MAX_3D_THROTTLE));
+    int16_t cmd = (int16_t)(throttle * ESCCMD_MAX_3D_THROTTLE);
+    // Deadband: skip very low commands that cause BOING startup-failure in 3D mode.
+    // Values below the threshold are treated as stop — the ESCCMD throttle watchdog
+    // fires after ~40 ms and sends DShot MOTOR_STOP (command 0) automatically.
+    if (abs(cmd) < 100) return;
+    ESCCMD_throttle(motorIndex, cmd);
 }
 
 void Motor::off() {
-    ESCCMD_throttle(motorIndex, 0);
+    // In 3D mode, ESCCMD_throttle(idx, 0) sends DShot 48 (min forward), not MOTOR_STOP.
+    // Not calling it lets the ESCCMD throttle watchdog fire and send MOTOR_STOP (~40 ms).
 }
 
 // --- MotorManager ---
@@ -22,8 +28,8 @@ void Motor::off() {
 void MotorManager::init() {
     ESCCMD_init(2);
     int r;
-    // r = ESCCMD_3D_on_silent();
-    // Serial.printf("[Motors] 3D_on_silent: %d\n", r);
+    r = ESCCMD_3D_on_silent();
+    Serial.printf("[Motors] 3D_on_silent: %d\n", r);
     r = ESCCMD_arm_all();
     Serial.printf("[Motors] arm_all: %d\n", r);
     r = ESCCMD_start_timer();
