@@ -177,7 +177,7 @@ void handleCalibration(const uint16_t* ch) {
 uint16_t channels[CRSF_NUM_CHANNELS];
 CrsfStatus status;
 
-const int RED_LED_PIN = 5;   // was 8 — pin 8 is DShot ch2 output, moved to free pin 5
+const int YELLOW_LED_PIN = 5;   // was 8 — pin 8 is DShot ch2 output, moved to free pin 5
 const int GREEN_LED_PIN = 6;
 
 void setup() {
@@ -188,7 +188,7 @@ void setup() {
     }
     Serial.println("--- SETUP START ---");
     pinMode(GREEN_LED_PIN, OUTPUT);
-    pinMode(RED_LED_PIN, OUTPUT);
+    pinMode(YELLOW_LED_PIN, OUTPUT);
 
     Serial.println("Loading accelerometer calibration from EEPROM...");
     accelCal.load();
@@ -289,6 +289,8 @@ void loop() {
         mag.update(micros());
         estimator.update(micros());
         handleCalibration(channels);
+        digitalWrite(GREEN_LED_PIN, HIGH);
+        digitalWrite(YELLOW_LED_PIN, HIGH);
         return;
     }
      //Serial.print("Receiver: ");
@@ -392,21 +394,21 @@ void loop() {
 
     if (robot.theta < PI/8 || robot.theta > 15*PI/8) {
         digitalWrite(GREEN_LED_PIN, HIGH);
-        digitalWrite(RED_LED_PIN, HIGH);
+        digitalWrite(YELLOW_LED_PIN, HIGH);
     }
     else {
         digitalWrite(GREEN_LED_PIN, LOW);
-        digitalWrite(RED_LED_PIN, LOW);
+        digitalWrite(YELLOW_LED_PIN, LOW);
     }
     // LED testing: flashes once for 0.02 seconds, looping every 0.1 seconds. This means RPM = 600 if the heading is still.
     if (currentTime % 100000 < 20000) {
         digitalWrite(GREEN_LED_PIN, HIGH);
-        digitalWrite(RED_LED_PIN, HIGH);
+        digitalWrite(YELLOW_LED_PIN, HIGH);
         //Serial.println("LED ON");
     }
     else {
         digitalWrite(GREEN_LED_PIN, LOW);
-        digitalWrite(RED_LED_PIN, LOW);
+        digitalWrite(YELLOW_LED_PIN, LOW);
         //Serial.println("LED OFF");
     }
 
