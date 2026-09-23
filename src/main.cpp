@@ -197,8 +197,7 @@ void setup() {
 
     Serial.println("Initializing Accelerometers...");
     Wire.begin();
-    Wire.setClock(400000);        // 400 kHz fast mode
-    Wire.setDefaultTimeout(500);  // 500 µs per transaction — prevents stalls on missing sensors
+    Wire.setClock(400000);   // 400 kHz fast mode
     accelerometers.init(0x18, 0x19);
     Serial.println("...Accelerometers Initialized.");
 
