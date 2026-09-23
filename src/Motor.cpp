@@ -14,7 +14,7 @@ void Motor::on(float throttle) {
     // Deadband: skip very low commands that cause BOING startup-failure in 3D mode.
     // Values below the threshold are treated as stop — the ESCCMD throttle watchdog
     // fires after ~40 ms and sends DShot MOTOR_STOP (command 0) automatically.
-    if (abs(cmd) < 100) return;
+    if (abs(cmd) < 48) return;
     ESCCMD_throttle(motorIndex, cmd);
 }
 
@@ -44,6 +44,8 @@ void MotorManager::on(float throttle) {
 }
 
 void MotorManager::on(float throttle1, float throttle2) {
+    lastLeft  = throttle1;
+    lastRight = throttle2;
     motor1.on(throttle1);
     motor2.on(throttle2);
 }

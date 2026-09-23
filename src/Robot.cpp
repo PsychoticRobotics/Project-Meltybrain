@@ -14,9 +14,9 @@ bool Robot::isWithinHalfTurn(double theta, double direction) {
 
 void Robot::move(float channel1, float channel2, float channel3) {
     // Map receiver inputs to [-1, 1] / [0, 1]
-    channel1 = map(channel1, 994, 2014, -1, 1);
-    channel2 = map(channel2, 990, 2010, -1, 1);
-    channel3 = map(channel3, 1000, 2014,  0, 1);
+    channel1 = (channel1 - 994.0f)  / (2014.0f - 994.0f)  * 2.0f - 1.0f;
+    channel2 = (channel2 - 990.0f)  / (2010.0f - 990.0f)  * 2.0f - 1.0f;
+    channel3 = (channel3 - 1000.0f) / (2014.0f - 1000.0f);
 
     if (channel1 < -1.02 || channel1 > 1.02) channel1 = 0;
     if (channel2 < -1.02 || channel2 > 1.02) channel2 = 0;
@@ -26,14 +26,21 @@ void Robot::move(float channel1, float channel2, float channel3) {
     float throttle  = channel3;
     float direction = atan2(channel1, channel2);
     if (direction < 0) direction += 2 * PI;
-    float magnitude = sqrt(pow(channel1, 2) + pow(channel2, 2));
-    if (magnitude > 1.0) magnitude = 1.0;
+    float magnitude = sqrtf(channel1 * channel1 + channel2 * channel2);
+    if (magnitude > 1.0f) magnitude = 1.0f;
+    // Clamp magnitude so average stays exactly at throttle and both motors stay in [0, 1].
+    magnitude = fminf(magnitude, fminf(2.0f * throttle, 2.0f * (1.0f - throttle)));
+
+    float lo = throttle - magnitude / 2.0f;
+    float hi = throttle + magnitude / 2.0f;
 
     updateTheta();  // reads latest fused angle from AngleEstimator
 
-    if (isWithinHalfTurn(theta, direction)) {
-        _motors->on(throttle - magnitude / 2, throttle + magnitude / 2);
+    bool inHalf = isWithinHalfTurn(theta, direction);
+    if (spinReversed) inHalf = !inHalf;
+    if (inHalf) {
+        _motors->on(lo, hi);
     } else {
-        _motors->on(throttle + magnitude / 2, throttle - magnitude / 2);
+        _motors->on(hi, lo);
     }
 }

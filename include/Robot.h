@@ -12,7 +12,8 @@ public:
     void move(float channel1, float channel2, float channel3);
     bool isWithinHalfTurn(double theta, double direction);
 
-    double theta = 0.0f;  // robot's orientation angle in radians
+    double theta        = 0.0f;   // robot's orientation angle in radians
+    bool   spinReversed = false;  // true = CCW, false = CW
 
 private:
     void updateTheta();   // reads latest angle from estimator

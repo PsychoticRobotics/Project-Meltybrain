@@ -5,6 +5,7 @@
 static constexpr float CH1_LO = 994.0f,  CH1_HI = 2014.0f;   // lateral
 static constexpr float CH2_LO = 990.0f,  CH2_HI = 2010.0f;   // forward
 static constexpr float CH3_LO = 1000.0f, CH3_HI = 2014.0f;   // throttle
+static constexpr float CH4_LO = 994.0f,  CH4_HI = 2014.0f;   // rudder/turn
 
 static constexpr float CH1_MID  = (CH1_LO + CH1_HI) * 0.5f;  // 1504
 static constexpr float CH2_MID  = (CH2_LO + CH2_HI) * 0.5f;  // 1500
@@ -38,10 +39,9 @@ DriveCommand Autonomy::update(
     // ── Mode detection from RC switch ─────────────────────────────────────────
     uint16_t  mode_us = rc[MODE_SELECT_CH];
     RobotMode newMode;
-    if      (mode_us < MODE_THRESHOLD_TANK) newMode = RobotMode::TANK;
-    else if (mode_us < MODE_THRESHOLD_MELTY) newMode = RobotMode::MELTY;
-    else if (mode_us < MODE_THRESHOLD_ASST)  newMode = RobotMode::ASSISTED;
-    else                                      newMode = RobotMode::AUTO;
+    if      (mode_us >= MODE_THRESHOLD_MELTY) newMode = RobotMode::TANK;
+    else if (mode_us >= MODE_THRESHOLD_AUTO)  newMode = RobotMode::MELTY;
+    else                                       newMode = RobotMode::AUTO;
 
     if (newMode != _mode) {
         _mode  = newMode;
@@ -75,8 +75,8 @@ DriveCommand Autonomy::update(
 //   right = fwd − turn
 
 DriveCommand Autonomy::_tank(const uint16_t* rc) {
-    float turn = _mapUs(rc[0], CH1_LO, CH1_HI);   // lateral,  [-1, 1]
-    float fwd  = _mapUs(rc[1], CH2_LO, CH2_HI);   // forward,  [-1, 1]
+    float fwd  = _mapUs(rc[0], CH1_LO, CH1_HI);   // forward/backward, [-1, 1]
+    float turn = _mapUs(rc[1], CH2_LO, CH2_HI);   // differential,     [-1, 1]
 
     DriveCommand cmd = {};
     cmd.isTank = true;

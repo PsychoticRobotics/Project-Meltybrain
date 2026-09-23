@@ -41,8 +41,8 @@ unsigned currentTime = 0;
 //                throttle (CH3, channels[2]) is at minimum (< 1100 µs).
 // While in cal mode the main drive loop does NOT run (robot stays still).
 // RC channel assignments in this block — adjust to match your transmitter:
-static constexpr uint8_t  CAL_ENTRY_CH   = 5;   // 0-based channel index (CH6)
-static constexpr uint8_t  CAL_SAVE_CH    = 5;   // same channel — held=commit, tap=factor change
+static constexpr uint8_t  CAL_ENTRY_CH   = 8;   // 0-based channel index (CH9) — moved off CH6
+static constexpr uint8_t  CAL_SAVE_CH    = 8;   // same channel — held=commit, tap=factor change
 static constexpr uint8_t  CAL_FACTOR_CH  = 0;   // CH1: left/right stick adjusts working factor
 static constexpr uint8_t  CAL_ZERO_CH    = 1;   // CH2: pull low + hold 2 s → zero-G capture
 
@@ -197,7 +197,8 @@ void setup() {
 
     Serial.println("Initializing Accelerometers...");
     Wire.begin();
-    Wire.setClock(400000);   // 400 kHz fast mode
+    Wire.setClock(400000);        // 400 kHz fast mode
+    Wire.setDefaultTimeout(500);  // 500 µs per transaction — prevents stalls on missing sensors
     accelerometers.init(0x18, 0x19);
     Serial.println("...Accelerometers Initialized.");
 
@@ -256,10 +257,12 @@ void loop() {
     }
     rc.fetch(channels, &status);
     if (rc.isLost()) {
-        Serial.println("CRSF signal lost! Halting.");
-        while (1) {
-            robot.move(0, 0, 0);
+        static uint32_t lastLostMs = 0;
+        if (millis() - lastLostMs >= 1000) {
+            lastLostMs = millis();
+            Serial.println("CRSF signal lost.");
         }
+        return;
     }
 
     // ── Calibration mode entry ────────────────────────────────────────────────
@@ -293,27 +296,11 @@ void loop() {
         digitalWrite(YELLOW_LED_PIN, HIGH);
         return;
     }
-     //Serial.print("Receiver: ");
-     //Serial.print("Ch 1: ");
-     //Serial.print(channels[0]);
-     //Serial.print(" Ch 2: ");
-     //Serial.print(channels[1]);
-     //Serial.print(" Ch 3: ");
-     //Serial.println(channels[2]);
     currentTime = micros();
     accelerometers.refresh();       // 1. read accelerometer
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
     //Serial.printf(">omega:%.2f\n", estimator.getOmega());
-    static uint32_t lastDiagMs = 0;
-    if (millis() - lastDiagMs >= 1000) {
-        lastDiagMs = millis();
-        Serial.printf("[DSHOT] ISR0=%lu  ISR1=%lu\n",
-                      (unsigned long)DSHOT_isr_count[0],
-                      (unsigned long)DSHOT_isr_count[1]);
-        Serial.printf("[RC] ch0=%d ch1=%d ch2=%d ch3=%d\n",
-                      channels[0], channels[1], channels[2], channels[3]);
-    }
 
 #if IR_MODE == 0
     // 4. IR heading correction — runs after the estimator so it has fresh
@@ -360,6 +347,18 @@ void loop() {
     bool  auto_pos_valid    = false;
 #endif
 
+    // ── Arm / Disarm (CH5) ───────────────────────────────────────────────────
+    bool armed = channels[ARM_CH] >= ARM_THRESHOLD;
+    if (!armed) {
+        static uint32_t lastDisarmMs = 0;
+        if (millis() - lastDisarmMs >= 1000) {
+            lastDisarmMs = millis();
+            Serial.printf("[Disarmed] ch5=%d (need >=%d to arm)\n",
+                          channels[ARM_CH], ARM_THRESHOLD);
+        }
+        return;
+    }
+
     DriveCommand cmd = autonomy.update(
         channels,
         estimator.getOmega(),
@@ -368,11 +367,28 @@ void loop() {
         auto_wall_dist, auto_wall_bearing
     );
 
+
+    // ── Spin direction (CH8) ─────────────────────────────────────────────────
+    robot.spinReversed = channels[SPIN_DIR_CH] < SPIN_DIR_THRESHOLD;
+
     if (cmd.isTank) {
-        //Serial.printf("[Motors] left=%.2f right=%.2f\n", cmd.left, cmd.right);
-        motors.on(cmd.left, cmd.right);
+        motors.on(cmd.left * TANK_POWER_SCALE, cmd.right * TANK_POWER_SCALE);
     } else {
         robot.move(cmd.ch1_us, cmd.ch2_us, cmd.ch3_us);
+    }
+
+    static uint32_t lastDiagMs = 0;
+    if (millis() - lastDiagMs >= 1000) {
+        lastDiagMs = millis();
+        Serial.printf("[DSHOT] ISR0=%lu  ISR1=%lu\n",
+                      (unsigned long)DSHOT_isr_count[0],
+                      (unsigned long)DSHOT_isr_count[1]);
+        Serial.printf("[RC] ch1=%d ch2=%d ch3=%d ch4=%d ch5=%d ch6=%d ch7=%d ch8=%d\n",
+                      channels[0], channels[1], channels[2], channels[3],
+                      channels[4], channels[5], channels[6], channels[7]);
+        Serial.printf("[Motors] left=%.2f  right=%.2f  dir=%s\n",
+                      motors.lastLeft, motors.lastRight,
+                      robot.spinReversed ? "CCW" : "CW");
     }
 
 #if IR_MODE == 1

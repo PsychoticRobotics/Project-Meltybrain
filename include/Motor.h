@@ -25,6 +25,9 @@ public:
     bool getCurrent(int motor, float &amps);
     bool getTemp(int motor, uint8_t &degC);
 
+    float lastLeft  = 0.0f;
+    float lastRight = 0.0f;
+
 private:
     Motor motor1;
     Motor motor2;
