@@ -58,7 +58,9 @@ public:
     void refresh();
 
     /** True when both accelerometers are present and initialised. */
-    bool isDual() const { return accel1.initialized && accel2.initialized; }
+    bool isDual()   const { return accel1.initialized && accel2.initialized; }
+    bool isAccel1() const { return accel1.initialized; }
+    bool isAccel2() const { return accel2.initialized; }
 
     // ── Average-of-both (or single) readings ──────────────────────────────
     Vec3d fetchXYZ();   // calibration-corrected average across sensors
