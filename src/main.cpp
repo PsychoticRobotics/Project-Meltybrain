@@ -272,6 +272,8 @@ void loop() {
             Vec3d a1 = accelerometers.fetchXYZ1();
             f1x += alpha*((float)a1.x()-f1x); f1y += alpha*((float)a1.y()-f1y); f1z += alpha*((float)a1.z()-f1z);
             Serial.printf("[Accel1] x=%8.3f y=%8.3f z=%8.3f  lpf=%8.3f %8.3f %8.3f\n", (float)a1.x(), (float)a1.y(), (float)a1.z(), f1x, f1y, f1z);
+            Serial.printf(">A1x:%.3f\n>A1y:%.3f\n>A1z:%.3f\n", (float)a1.x(), (float)a1.y(), (float)a1.z());
+            Serial.printf(">A1xf:%.3f\n>A1yf:%.3f\n>A1zf:%.3f\n", f1x, f1y, f1z);
         } else {
             Serial.println("[Accel1] NOT FOUND");
         }
@@ -279,10 +281,13 @@ void loop() {
             Vec3d a2 = accelerometers.fetchXYZ2();
             f2x += alpha*((float)a2.x()-f2x); f2y += alpha*((float)a2.y()-f2y); f2z += alpha*((float)a2.z()-f2z);
             Serial.printf("[Accel2] x=%8.3f y=%8.3f z=%8.3f  lpf=%8.3f %8.3f %8.3f\n", (float)a2.x(), (float)a2.y(), (float)a2.z(), f2x, f2y, f2z);
+            Serial.printf(">A2x:%.3f\n>A2y:%.3f\n>A2z:%.3f\n", (float)a2.x(), (float)a2.y(), (float)a2.z());
+            Serial.printf(">A2xf:%.3f\n>A2yf:%.3f\n>A2zf:%.3f\n", f2x, f2y, f2z);
         } else {
             Serial.println("[Accel2] NOT FOUND");
         }
         Serial.printf("[Angle]  %7.2f deg  omega=%7.2f rad/s\n", angleDeg, omegaRad);
+        Serial.printf(">angle:%.2f\n>omega:%.2f\n", angleDeg, omegaRad);
         return;
     }
 
