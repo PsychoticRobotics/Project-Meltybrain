@@ -104,40 +104,6 @@ Vec3d AccelerometerManager::fetchXYZ() {
     return _cache;
 }
 
-void AccelerometerManager::printPlotter() const {
-    // Teleplot format: one >label:value per line.
-    // Axes: x=right (separation), y=forward, z=up.  Suffixes: r=raw, c=cal, e=ema.
-    if (accel2.initialized) {
-        Serial.printf(">A1xr:%.2f\n", (float)_raw1.x());
-        Serial.printf(">A1xc:%.2f\n", (float)_cache1.x());
-        Serial.printf(">A1xe:%.2f\n", (float)_ema1.x());
-        Serial.printf(">A1yr:%.2f\n", (float)_raw1.y());
-        Serial.printf(">A1yc:%.2f\n", (float)_cache1.y());
-        Serial.printf(">A1ye:%.2f\n", (float)_ema1.y());
-        Serial.printf(">A1zr:%.2f\n", (float)_raw1.z());
-        Serial.printf(">A1zc:%.2f\n", (float)_cache1.z());
-        Serial.printf(">A1ze:%.2f\n", (float)_ema1.z());
-        Serial.printf(">A2xr:%.2f\n", (float)_raw2.x());
-        Serial.printf(">A2xc:%.2f\n", (float)_cache2.x());
-        Serial.printf(">A2xe:%.2f\n", (float)_ema2.x());
-        Serial.printf(">A2yr:%.2f\n", (float)_raw2.y());
-        Serial.printf(">A2yc:%.2f\n", (float)_cache2.y());
-        Serial.printf(">A2ye:%.2f\n", (float)_ema2.y());
-        Serial.printf(">A2zr:%.2f\n", (float)_raw2.z());
-        Serial.printf(">A2zc:%.2f\n", (float)_cache2.z());
-        Serial.printf(">A2ze:%.2f\n", (float)_ema2.z());
-    } else {
-        Serial.printf(">Axr:%.2f\n", (float)_raw1.x());
-        Serial.printf(">Axc:%.2f\n", (float)_cache.x());
-        Serial.printf(">Axe:%.2f\n", (float)_ema1.x());
-        Serial.printf(">Ayr:%.2f\n", (float)_raw1.y());
-        Serial.printf(">Ayc:%.2f\n", (float)_cache.y());
-        Serial.printf(">Aye:%.2f\n", (float)_ema1.y());
-        Serial.printf(">Azr:%.2f\n", (float)_raw1.z());
-        Serial.printf(">Azc:%.2f\n", (float)_cache.z());
-        Serial.printf(">Aze:%.2f\n", (float)_ema1.z());
-    }
-}
 
 void AccelerometerManager::printDebug() const {
     // Sensor axes: x = right (separation), y = forward, z = up

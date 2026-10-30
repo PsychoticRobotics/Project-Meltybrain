@@ -256,11 +256,20 @@ void loop() {
     }
     rc.fetch(channels, &status);
     if (rc.isLost()) {
+        accelerometers.refresh();
         static uint32_t lastLostMs = 0;
         if (millis() - lastLostMs >= 1000) {
             lastLostMs = millis();
             Serial.println("CRSF signal lost.");
         }
+        Vec3d a1 = accelerometers.fetchXYZ1();
+        Vec3d a2 = accelerometers.fetchXYZ2();
+        static float f1x=0,f1y=0,f1z=0, f2x=0,f2y=0,f2z=0;
+        const float alpha = 0.1f;
+        f1x += alpha*((float)a1.x()-f1x); f1y += alpha*((float)a1.y()-f1y); f1z += alpha*((float)a1.z()-f1z);
+        f2x += alpha*((float)a2.x()-f2x); f2y += alpha*((float)a2.y()-f2y); f2z += alpha*((float)a2.z()-f2z);
+        Serial.printf("[Accel1] x=%8.3f y=%8.3f z=%8.3f  lpf=%8.3f %8.3f %8.3f\n", (float)a1.x(), (float)a1.y(), (float)a1.z(), f1x, f1y, f1z);
+        Serial.printf("[Accel2] x=%8.3f y=%8.3f z=%8.3f  lpf=%8.3f %8.3f %8.3f\n", (float)a2.x(), (float)a2.y(), (float)a2.z(), f2x, f2y, f2z);
         return;
     }
 
@@ -299,7 +308,6 @@ void loop() {
     accelerometers.refresh();       // 1. read accelerometer
     mag.update(currentTime);        // 2. read magnetometer
     estimator.update(currentTime);  // 3. fuse — must come after both sensors
-    //Serial.printf(">omega:%.2f\n", estimator.getOmega());
 
 #if IR_MODE == 0
     // 4. IR heading correction — runs after the estimator so it has fresh

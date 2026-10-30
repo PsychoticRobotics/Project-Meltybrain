@@ -84,10 +84,6 @@ public:
     // Print cached x/y/z for each sensor to Serial (call after refresh()).
     void printDebug() const;
 
-    // Print a single Serial Plotter-compatible line (label:value pairs).
-    // Use instead of printDebug() when graphing in Arduino IDE / PlatformIO plotter.
-    void printPlotter() const;
-
 private:
     Accelerometer accel1;
     Accelerometer accel2;
